@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema({
   team_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', default: null },
 }, { timestamps: true })
 
-userSchema.index({ username: 1 })
 userSchema.index({ role: 1 })
 userSchema.index({ team_id: 1 })
 
