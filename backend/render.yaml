@@ -2,7 +2,7 @@ services:
   - type: web
     name: oneway-backend
     env: node
-    buildCommand: npm install
+    buildCommand: npm install && cd ../frontend && npm install && npm run build && cd ../backend
     startCommand: npm run seed && npm start
     envVars:
       - key: NODE_VERSION

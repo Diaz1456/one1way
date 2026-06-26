@@ -37,6 +37,9 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsPath = path.resolve(process.env.UPLOAD_DIR || 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
+const distPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(distPath));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/achievements', achievementRoutes);
@@ -48,6 +51,10 @@ app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.use((err, req, res, next) => {
