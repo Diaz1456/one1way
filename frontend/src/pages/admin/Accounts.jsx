@@ -43,7 +43,7 @@ export default function Accounts() {
       setForm(initialForm)
       fetchPlayers()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create player')
+      toast.error(err.response?.data?.error || 'Failed to create player')
     } finally {
       setCreating(false)
     }
@@ -56,8 +56,8 @@ export default function Accounts() {
       toast.success('Player deleted')
       setPlayers(prev => prev.filter(p => p.id !== id))
       if (selectedPlayer?.id === id) setSelectedPlayer(null)
-    } catch {
-      toast.error('Failed to delete player')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete player')
     }
   }
 
@@ -67,8 +67,8 @@ export default function Accounts() {
       await api.put(`/users/${selectedPlayer.id}`, { password: newPassword })
       toast.success('Password updated')
       setNewPassword('')
-    } catch {
-      toast.error('Failed to update password')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update password')
     }
   }
 
