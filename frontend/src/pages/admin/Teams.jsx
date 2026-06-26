@@ -46,7 +46,7 @@ export default function Teams() {
       setForm({ name: '', color: '#3b82f6' })
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create team')
+      toast.error(err.response?.data?.error || 'Failed to create team')
     } finally {
       setCreating(false)
     }
@@ -59,8 +59,8 @@ export default function Teams() {
       toast.success('Team deleted')
       setTeams(prev => prev.filter(t => t.id !== id))
       if (selectedTeam?.id === id) setSelectedTeam(null)
-    } catch {
-      toast.error('Failed to delete team')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete team')
     }
   }
 
@@ -83,8 +83,8 @@ export default function Teams() {
       await api.put(`/teams/${selectedTeam.id}/members`, { memberIds: selectedMembers })
       toast.success('Team members updated')
       fetchData()
-    } catch {
-      toast.error('Failed to update members')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update members')
     } finally {
       setSaving(false)
     }

@@ -225,7 +225,7 @@ const PlayerDashboard = () => {
     }
     api.get(`/users/${auth.user.id}/details`)
       .then(({ data }) => setUserDetails(data))
-      .catch(() => toast.error('Failed to load user details'))
+      .catch(err => toast.error(err.response?.data?.error || 'Failed to load user details'))
       .finally(() => setLoading(false))
   }, [auth.user?.id])
 

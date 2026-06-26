@@ -48,7 +48,7 @@ export default function Achievements() {
       setForm(initialForm)
       fetchData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create achievement')
+      toast.error(err.response?.data?.error || 'Failed to create achievement')
     } finally {
       setCreating(false)
     }
@@ -60,8 +60,8 @@ export default function Achievements() {
       await api.delete(`/achievements/${id}`)
       toast.success('Achievement deleted')
       setAchievements(prev => prev.filter(a => a.id !== id))
-    } catch {
-      toast.error('Failed to delete achievement')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete achievement')
     }
   }
 
@@ -81,8 +81,8 @@ export default function Achievements() {
       toast.success('Achievement updated')
       setEditingId(null)
       fetchData()
-    } catch {
-      toast.error('Failed to update achievement')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update achievement')
     }
   }
 

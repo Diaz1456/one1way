@@ -88,7 +88,7 @@ const DailyTask = () => {
         toast.success('Daily task completed!')
       })
       .catch(err => {
-        toast.error(err.response?.data?.message || 'Failed to complete task')
+        toast.error(err.response?.data?.error || 'Failed to complete task')
       })
       .finally(() => setCompleting(false))
   }

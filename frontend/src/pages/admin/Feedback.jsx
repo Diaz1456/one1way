@@ -41,8 +41,8 @@ export default function Feedback() {
       await api.delete(`/feedback/${id}`)
       setFeedbackList(prev => prev.filter(f => f.id !== id))
       toast.success('Feedback deleted')
-    } catch {
-      toast.error('Failed to delete feedback')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete feedback')
     }
   }
 
