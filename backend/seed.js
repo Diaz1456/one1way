@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import connectDB from './db.js';
+import { connectDB } from './db.js';
 import { User, Team, Achievement, Coin, DailyTask, DailyTaskCompletion, Note, Feedback, PresenceLog, GlobalCountdown, StockEvent } from './models/index.js';
 
 async function seed() {
