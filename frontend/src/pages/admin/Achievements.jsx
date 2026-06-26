@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { FiEdit2, FiTrash2, FiX } from 'react-icons/fi'
 import api from '../../api'
 
-const initialForm = { userId: '', title: '', description: '', category: '', points: 10, date: new Date().toISOString().split('T')[0] }
+const initialForm = { user_id: '', title: '', description: '', category: '', points: 10, date_earned: new Date().toISOString().split('T')[0] }
 
 export default function Achievements() {
   const [achievements, setAchievements] = useState([])
@@ -37,7 +37,7 @@ export default function Achievements() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!form.userId || !form.title) {
+    if (!form.user_id || !form.title) {
       toast.error('Player and title required')
       return
     }
@@ -67,7 +67,7 @@ export default function Achievements() {
 
   const startEdit = (ach) => {
     setEditingId(ach.id)
-    setEditForm({ title: ach.title, description: ach.description || '', category: ach.category || '', points: ach.points, date: ach.date ? ach.date.split('T')[0] : '' })
+    setEditForm({ title: ach.title, description: ach.description || '', category: ach.category || '', points: ach.points, date_earned: ach.date_earned ? ach.date_earned.split('T')[0] : '' })
   }
 
   const cancelEdit = () => {
@@ -106,8 +106,8 @@ export default function Achievements() {
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Add Achievement</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <select
-            value={form.userId}
-            onChange={e => setForm({ ...form, userId: e.target.value })}
+            value={form.user_id}
+            onChange={e => setForm({ ...form, user_id: e.target.value })}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
           >
             <option value="">Select Player *</option>
@@ -201,7 +201,7 @@ export default function Achievements() {
                             className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm text-right" />
                         </td>
                         <td className="py-3">
-                          <input type="date" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })}
+                          <input type="date" value={editForm.date_earned} onChange={e => setEditForm({ ...editForm, date_earned: e.target.value })}
                             className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
                         </td>
                         <td className="py-3">
