@@ -196,7 +196,7 @@ router.get('/:id/details', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { password, currentPassword, display_name, username, role, team_id, avatar_url } = req.body;
+    const { display_name, username, role, team_id, avatar_url } = req.body;
 
     if (req.user.role !== 'admin' && req.user.id !== id) {
       return res.status(403).json({ error: 'You can only update your own profile' });
@@ -204,16 +204,6 @@ router.put('/:id', async (req, res) => {
 
     const isAdmin = req.user.role === 'admin';
     const update = {};
-
-    if (password) {
-      if (req.user.id === id && currentPassword) {
-        const user = await User.findById(id).select('password_hash');
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        const valid = await bcrypt.compare(currentPassword, user.password_hash);
-        if (!valid) return res.status(400).json({ error: 'Current password is incorrect' });
-      }
-      update.password_hash = await bcrypt.hash(password, 10);
-    }
 
     if (display_name && (isAdmin || req.user.id === id)) {
       update.display_name = display_name;

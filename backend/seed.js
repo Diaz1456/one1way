@@ -6,7 +6,7 @@ async function seed() {
   await connectDB();
 
   const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD || 'admin123';
+  const password = process.env.ADMIN_PASSWORD || 'commander48';
   const adminHash = await bcrypt.hash(password, 10);
 
   try {

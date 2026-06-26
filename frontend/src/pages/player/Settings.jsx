@@ -71,9 +71,10 @@ const Settings = ({ userDetails }) => {
     setSavingPassword(true)
     try {
       playClick()
-      await api.put(`/users/${userId}`, {
-        currentPassword: oldPassword,
-        newPassword
+      await api.post('/auth/change-password', {
+        current_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
       })
       playCoinUp()
       toast.success('Password changed!')

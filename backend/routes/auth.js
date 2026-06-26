@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -139,6 +140,46 @@ router.post('/refresh', async (req, res) => {
     });
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired refresh token' });
+  }
+});
+
+router.post('/change-password', authenticateToken, async (req, res) => {
+  const { current_password, new_password, confirm_password } = req.body;
+
+  if (!current_password) {
+    return res.status(400).json({ error: 'Current password is required' });
+  }
+  if (!new_password) {
+    return res.status(400).json({ error: 'New password is required' });
+  }
+  if (!confirm_password) {
+    return res.status(400).json({ error: 'Confirm password is required' });
+  }
+  if (new_password !== confirm_password) {
+    return res.status(400).json({ error: 'New password and confirm password do not match' });
+  }
+  if (new_password.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+
+  try {
+    const user = await User.findById(req.user.id).select('password_hash');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const valid = await bcrypt.compare(current_password, user.password_hash);
+    if (!valid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    user.password_hash = await bcrypt.hash(new_password, 10);
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
