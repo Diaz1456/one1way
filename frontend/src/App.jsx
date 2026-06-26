@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import useStore from './store'
+import api from './api'
 import { connectSocket, disconnectSocket } from './socket'
 
 const AuthContext = createContext(null)
@@ -13,10 +14,19 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (auth.accessToken) {
-      connectSocket(auth.accessToken)
+    async function init() {
+      if (auth.accessToken) {
+        try {
+          const { data } = await api.get('/users/me')
+          auth.restore(data)
+          connectSocket(auth.accessToken)
+        } catch {
+          auth.logout()
+        }
+      }
+      setLoading(false)
     }
-    setLoading(false)
+    init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

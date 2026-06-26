@@ -10,6 +10,9 @@ const useStore = create((set, get) => ({
       localStorage.setItem('refreshToken', refreshToken)
       set({ auth: { ...get().auth, user, accessToken, refreshToken } })
     },
+    restore: (user) => {
+      set({ auth: { ...get().auth, user } })
+    },
     logout: () => {
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
