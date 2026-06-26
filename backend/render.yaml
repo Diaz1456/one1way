@@ -20,7 +20,7 @@ services:
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
-        value: admin123
+        value: commander48
       - key: UPLOAD_DIR
         value: uploads
 
