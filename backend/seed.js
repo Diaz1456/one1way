@@ -28,9 +28,9 @@ async function seed() {
     const teamCount = await Team.countDocuments();
     if (teamCount === 0) {
       const teamData = [
-        { name: 'Alpha Squad', color: '#ef4444' },
-        { name: 'Bravo Crew', color: '#3b82f6' },
-        { name: 'Delta Force', color: '#22c55e' },
+        { name: 'Alpha Squad', color: '#ef4444', cash: 5000 },
+        { name: 'Bravo Crew', color: '#3b82f6', cash: 3200 },
+        { name: 'Delta Force', color: '#22c55e', cash: 1800 },
       ];
 
       const teams = await Team.insertMany(teamData);

@@ -11,6 +11,7 @@ import api from '../api'
 import { disconnectSocket } from '../socket'
 import RecentLogins from '../components/RecentLogins'
 import ThemeToggle from '../components/ThemeToggle'
+import TeamRankings from '../components/TeamRankings'
 import Accounts from './admin/Accounts'
 import Leaderboard from './admin/Leaderboard'
 import Achievements from './admin/Achievements'
@@ -197,9 +198,18 @@ export default function AdminDashboard() {
             <Routes>
               <Route index element={
                 <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                  <div className="text-center py-20">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.username || 'Admin'}!</h2>
-                    <p className="text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
+                  <div className="space-y-8">
+                    <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-900/10 dark:via-amber-900/10 dark:to-orange-900/10 rounded-3xl p-6 sm:p-8 border border-yellow-100 dark:border-yellow-900/20 shadow-lg shadow-yellow-500/5">
+                      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                        <span className="text-2xl">🏆</span>
+                        Team Rankings &amp; Cash
+                      </h2>
+                      <TeamRankings />
+                    </div>
+                    <div className="text-center py-8">
+                      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.username || 'Admin'}!</h2>
+                      <p className="text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
+                    </div>
                   </div>
                 </motion.div>
               } />

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import { User, Team, Achievement, StockEvent } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
-import { broadcastAchievement, broadcastOvertake } from '../socket.js';
+import { broadcastAchievement, broadcastOvertake, broadcastTeams } from '../socket.js';
 import { requireValidObjectId } from '../middleware/validate.js';
 
 const router = Router();
@@ -137,6 +137,7 @@ router.post('/', requireAdmin, async (req, res) => {
     }
 
     res.status(201).json(achievement);
+    broadcastTeams();
   } catch (err) {
     console.error('Create achievement error:', err);
     res.status(500).json({ error: 'Failed to create achievement' });
@@ -165,6 +166,7 @@ router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) =>
     }
 
     res.json(achievement);
+    broadcastTeams();
   } catch (err) {
     console.error('Update achievement error:', err);
     res.status(500).json({ error: 'Failed to update achievement' });
@@ -182,6 +184,7 @@ router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res)
     }
 
     res.json({ message: 'Achievement deleted', achievement: { id: achievement._id, category: achievement.category } });
+    broadcastTeams();
   } catch (err) {
     console.error('Delete achievement error:', err);
     res.status(500).json({ error: 'Failed to delete achievement' });

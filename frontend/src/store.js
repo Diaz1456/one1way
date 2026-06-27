@@ -65,6 +65,7 @@ const useStore = create((set, get) => ({
     duration: 0
   },
 
+  teams: [],
   stockEvents: [],
   currentTask: null,
 
@@ -72,6 +73,7 @@ const useStore = create((set, get) => ({
   setOnlineUsers: (users) => set({ onlineUsers: users }),
   setRecentLogins: (logins) => set({ recentLogins: logins }),
   setCountdown: (countdown) => set({ countdown }),
+  setTeams: (teams) => set({ teams }),
   setCurrentTask: (task) => set({ currentTask: task }),
   addStockEvent: (event) => {
     const events = get().stockEvents

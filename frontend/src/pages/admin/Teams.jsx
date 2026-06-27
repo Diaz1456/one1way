@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiUsers, FiTrash2, FiEdit2, FiX, FiCheck } from 'react-icons/fi'
+import { FiUsers, FiTrash2, FiEdit2, FiX, FiCheck, FiDollarSign } from 'react-icons/fi'
 import api from '../../api'
 
 export default function Teams() {
@@ -15,6 +15,7 @@ export default function Teams() {
   const [saving, setSaving] = useState(false)
   const [editingTeam, setEditingTeam] = useState(null)
   const [editForm, setEditForm] = useState({ name: '', color: '' })
+  const [cashInput, setCashInput] = useState({})
 
   const fetchData = useCallback(async () => {
     try {
@@ -120,6 +121,22 @@ export default function Teams() {
     }
   }
 
+  const handleSetCash = async (teamId, amount) => {
+    const val = parseInt(amount, 10)
+    if (isNaN(val) || val < 0) {
+      toast.error('Enter a valid cash amount (>= 0)')
+      return
+    }
+    try {
+      await api.put(`/teams/${teamId}/cash`, { cash: val })
+      toast.success('Cash updated')
+      setCashInput(prev => ({ ...prev, [teamId]: '' }))
+      fetchData()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update cash')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -210,9 +227,30 @@ export default function Teams() {
                     </motion.button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <FiUsers size={14} />
-                  <span>{(team.members?.length || team.players?.length || 0)} members</span>
+                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <FiUsers size={14} />
+                    {(team.members?.length || team.players?.length || 0)} members
+                  </span>
+                  <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                    <FiDollarSign size={14} />
+                    {(team.cash || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                  <input
+                    type="number" min="0" placeholder="Set cash..."
+                    value={cashInput[teamId] ?? ''}
+                    onChange={e => setCashInput(prev => ({ ...prev, [teamId]: e.target.value }))}
+                    className="w-24 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/40 outline-none"
+                  />
+                  <motion.button
+                    onClick={() => handleSetCash(teamId, cashInput[teamId])}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-2 py-1 text-xs bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg font-medium shadow-sm shadow-emerald-500/20"
+                  >
+                    Set Cash
+                  </motion.button>
                 </div>
                 {(team.members?.length > 0 || team.players?.length > 0) && (
                   <div className="flex -space-x-2 mt-3">

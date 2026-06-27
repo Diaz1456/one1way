@@ -46,6 +46,10 @@ export const connectSocket = (token) => {
     useStore.getState().setCurrentTask(data)
   })
 
+  socket.on('teams:update', (data) => {
+    useStore.getState().setTeams(data || [])
+  })
+
   socket.on('disconnect', (reason) => {
     console.log('Socket disconnected:', reason)
   })

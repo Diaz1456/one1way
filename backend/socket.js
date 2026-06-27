@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { GlobalCountdown, PresenceLog, User } from './models/index.js';
+import { GlobalCountdown, PresenceLog, User, Team, Achievement } from './models/index.js';
 
 let io = null;
 
@@ -70,6 +70,65 @@ export function broadcastFeedback(feedback) {
   emitToAdmins('feedback:new', feedback);
 }
 
+async function computeTeamRankings() {
+  const teams = await Team.aggregate([
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: 'team_id',
+        as: 'members',
+      },
+    },
+    { $unwind: { path: '$members', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'achievements',
+        localField: 'members._id',
+        foreignField: 'user_id',
+        as: 'memberAchievements',
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        name: { $first: '$name' },
+        color: { $first: '$color' },
+        cash: { $first: '$cash' },
+        createdAt: { $first: '$createdAt' },
+        updatedAt: { $first: '$updatedAt' },
+        member_count: { $sum: { $cond: [{ $ifNull: ['$members._id', false] }, 1, 0] } },
+        score: {
+          $sum: {
+            $reduce: {
+              input: { $ifNull: ['$memberAchievements', []] },
+              initialValue: 0,
+              in: { $add: ['$$value', { $ifNull: ['$$this.points', 0] }] },
+            },
+          },
+        },
+      },
+    },
+    { $sort: { score: -1, name: 1 } },
+  ]);
+
+  return teams.map((t, i) => ({
+    ...t,
+    id: t._id.toString(),
+    rank: i + 1,
+  }));
+}
+
+export async function broadcastTeams() {
+  if (!io) return;
+  try {
+    const ranked = await computeTeamRankings();
+    emitToAll('teams:update', ranked);
+  } catch (err) {
+    console.error('broadcastTeams error:', err);
+  }
+}
+
 export function broadcastTask(task) {
   emitToAll('daily_task:new', task);
 }
@@ -110,6 +169,13 @@ export async function setupSocket(server) {
     const countdown = await GlobalCountdown.findOne().sort({ createdAt: -1 });
     if (countdown) {
       socket.emit('countdown:sync', countdown);
+    }
+
+    try {
+      const initialTeams = await computeTeamRankings();
+      socket.emit('teams:update', initialTeams);
+    } catch (err) {
+      console.error('Send initial teams error:', err);
     }
 
     socket.on('heartbeat', () => {

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Team, User } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { requireValidObjectId } from '../middleware/validate.js';
+import { broadcastTeams } from '../socket.js';
 
 const router = Router();
 
@@ -42,6 +43,7 @@ router.post('/', requireAdmin, async (req, res) => {
   try {
     const team = await Team.create({ name: name.trim(), color: color || '#6366f1' });
     res.status(201).json(team);
+    broadcastTeams();
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Team name already exists' });
@@ -71,6 +73,7 @@ router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) =>
     }
 
     res.json({ ...team.toObject(), id: team._id.toString() });
+    broadcastTeams();
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Team name already exists' });
@@ -93,6 +96,7 @@ router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res)
     }
 
     res.json({ message: 'Team deleted', team: { id: team._id.toString(), name: team.name } });
+    broadcastTeams();
   } catch (err) {
     console.error('Delete team error:', err);
     res.status(500).json({ error: 'Failed to delete team' });
@@ -141,9 +145,33 @@ router.put('/:id/members', requireAdmin, requireValidObjectId('id'), async (req,
     }
 
     res.json({ ...team[0], id: team[0]._id.toString() });
+    broadcastTeams();
   } catch (err) {
     console.error('Set team members error:', err);
     res.status(500).json({ error: 'Failed to update team members' });
+  }
+});
+
+router.put('/:id/cash', requireAdmin, requireValidObjectId('id'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { cash } = req.body;
+
+    if (cash === undefined || typeof cash !== 'number' || cash < 0) {
+      return res.status(400).json({ error: 'A valid cash amount (number >= 0) is required' });
+    }
+
+    const team = await Team.findByIdAndUpdate(id, { cash }, { new: true });
+
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    res.json({ ...team.toObject(), id: team._id.toString() });
+    broadcastTeams();
+  } catch (err) {
+    console.error('Update team cash error:', err);
+    res.status(500).json({ error: 'Failed to update team cash' });
   }
 });
 
