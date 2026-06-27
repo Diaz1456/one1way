@@ -1,5 +1,20 @@
 import { create } from 'zustand'
 
+/*
+ * Theme initialization priority:
+ * 1. localStorage saved preference (explicit user choice)
+ * 2. System prefers-color-scheme: dark (first visit only)
+ * 3. Default: light mode
+ */
+function getInitialNightMode() {
+  const stored = localStorage.getItem('nightMode')
+  if (stored !== null) return stored === 'true'
+  if (typeof window !== 'undefined') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  return false
+}
+
 const useStore = create((set, get) => ({
   auth: {
     user: null,
@@ -21,8 +36,9 @@ const useStore = create((set, get) => ({
   },
 
   preferences: {
-    nightMode: localStorage.getItem('nightMode') === 'true',
+    nightMode: getInitialNightMode(),
     soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
+    /* Toggle night mode; persists to localStorage and applies .dark class via App.jsx */
     toggleNightMode: () => {
       const next = !get().preferences.nightMode
       localStorage.setItem('nightMode', next)
@@ -34,6 +50,10 @@ const useStore = create((set, get) => ({
       set({ preferences: { ...get().preferences, soundEnabled: next } })
     }
   },
+
+  /* The last toggle animation direction: true = toggling to dark, false = toggling to light */
+  themeToggleDirection: null,
+  setThemeToggleDirection: (dir) => set({ themeToggleDirection: dir }),
 
   socket: null,
   onlineUsers: [],

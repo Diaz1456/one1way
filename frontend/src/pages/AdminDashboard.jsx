@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
   FiUsers, FiAward, FiStar, FiClock, FiMessageSquare, FiUsers as FiGroup, FiClock as FiTimer,
-  FiMenu, FiX, FiLogOut, FiBell, FiSun, FiMoon,   FiVolume2, FiVolumeX, FiSettings, FiTag
+  FiMenu, FiX, FiLogOut, FiBell, FiVolume2, FiVolumeX, FiSettings, FiTag
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
 import RecentLogins from '../components/RecentLogins'
+import ThemeToggle from '../components/ThemeToggle'
 import Accounts from './admin/Accounts'
 import Leaderboard from './admin/Leaderboard'
 import Achievements from './admin/Achievements'
@@ -75,7 +76,7 @@ function CountdownDisplay() {
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const { auth, preferences, toggleNightMode, toggleSound } = useStore()
+  const { auth, preferences, toggleSound } = useStore()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [rightPanelOpen, setRightPanelOpen] = useState(false)
   const [feedbackList, setFeedbackList] = useState([])
@@ -141,11 +142,7 @@ export default function AdminDashboard() {
             <span className="font-medium text-sm text-gray-900 dark:text-white">{user.username || 'Admin'}</span>
             <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 uppercase tracking-wider">{user.role || 'admin'}</span>
           </motion.div>
-          <motion.button onClick={toggleNightMode}
-            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-all" title="Toggle Night Mode">
-            {preferences.nightMode ? <FiSun size={18} /> : <FiMoon size={18} />}
-          </motion.button>
+          <ThemeToggle />
           <motion.button onClick={toggleSound}
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-all" title="Toggle Sound">

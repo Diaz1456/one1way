@@ -5,11 +5,12 @@ import { Toaster, toast } from 'react-hot-toast'
 import {
   HiOutlineUser, HiOutlineStar, HiOutlineClipboardCheck,
   HiOutlineUsers, HiOutlineChatAlt2, HiOutlineCog,
-  HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineVolumeUp, HiOutlineVolumeOff
+  HiOutlineLogout, HiOutlineVolumeUp, HiOutlineVolumeOff
 } from 'react-icons/hi'
 import api from '../api'
 import useStore from '../store'
 import { playClick } from '../sound'
+import ThemeToggle from '../components/ThemeToggle'
 import Profile from './player/Profile'
 import DailyTask from './player/DailyTask'
 import TeamView from './player/TeamView'
@@ -309,14 +310,7 @@ const PlayerDashboard = () => {
             </span>
           </motion.div>
 
-          <motion.button
-            onClick={() => { playClick(); toggleNightMode() }}
-            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all"
-            title="Toggle night mode"
-          >
-            {preferences.nightMode ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
-          </motion.button>
+          <ThemeToggle />
 
           <motion.button
             onClick={() => { playClick(); toggleSound() }}
