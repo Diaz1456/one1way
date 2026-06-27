@@ -34,8 +34,8 @@ const ChampionsRow = ({ onSelect }) => {
   return (
     <div className="flex gap-3 justify-center flex-wrap">
       {champions.map((champ, idx) => {
-        const name = champ.displayName || champ.username || champ.name || 'Player'
-        const avatar = champ.avatar || ''
+        const name = champ.display_name || champ.displayName || champ.username || champ.name || 'Player'
+        const avatar = champ.avatar_url || champ.avatar || ''
         const score = champ.score ?? champ.points ?? 0
         const isTop = idx === 0
         return (
@@ -81,7 +81,7 @@ const ChampionModal = ({ champion, onClose }) => {
       .finally(() => setLoading(false))
   }, [champion?.id])
 
-  const name = champion?.displayName || champion?.username || champion?.name || 'Player'
+  const name = champion?.display_name || champion?.displayName || champion?.username || champion?.name || 'Player'
 
   return (
     <AnimatePresence>
@@ -101,8 +101,8 @@ const ChampionModal = ({ champion, onClose }) => {
         >
           <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              {champion?.avatar ? (
-                <img src={champion.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+              {(champion?.avatar_url || champion?.avatar) ? (
+                <img src={champion.avatar_url || champion.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
                   {name.charAt(0).toUpperCase()}
@@ -164,8 +164,8 @@ const Profile = ({ userDetails }) => {
   const [selectedChampion, setSelectedChampion] = useState(null)
 
   const user = userDetails || auth.user || {}
-  const displayName = user.displayName || user.username || 'Player'
-  const avatarUrl = user.avatar || ''
+  const displayName = user.display_name || user.displayName || user.username || 'Player'
+  const avatarUrl = user.avatar_url || user.avatar || ''
   const totalScore = user.totalScore ?? user.score ?? user.points ?? 0
   const userId = user.id
 

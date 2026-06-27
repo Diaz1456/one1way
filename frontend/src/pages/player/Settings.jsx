@@ -10,7 +10,7 @@ const Settings = ({ userDetails }) => {
   const { auth } = useStore()
 
   const userId = userDetails?.id || auth.user?.id
-  const currentDisplayName = userDetails?.displayName || auth.user?.displayName || auth.user?.username || ''
+  const currentDisplayName = userDetails?.display_name || userDetails?.displayName || auth.user?.display_name || auth.user?.displayName || auth.user?.username || ''
 
   const [displayName, setDisplayName] = useState(currentDisplayName)
   const [oldPassword, setOldPassword] = useState('')

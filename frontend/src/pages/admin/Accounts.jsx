@@ -89,7 +89,7 @@ export default function Accounts() {
 
   const filtered = players.filter(p =>
     !filter || (p.username && p.username.toLowerCase().includes(filter.toLowerCase())) ||
-    (p.displayName && p.displayName.toLowerCase().includes(filter.toLowerCase()))
+    ((p.display_name || p.displayName) && (p.display_name || p.displayName).toLowerCase().includes(filter.toLowerCase()))
   )
 
   return (
@@ -162,7 +162,7 @@ export default function Accounts() {
                       }`}
                     >
                       <td className="py-3 text-gray-900 dark:text-white">{player.username}</td>
-                      <td className="py-3 text-gray-700 dark:text-gray-300">{player.displayName || '-'}</td>
+                      <td className="py-3 text-gray-700 dark:text-gray-300">{player.display_name || player.displayName || '-'}</td>
                       <td className="py-3">
                         <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize">{player.role || 'player'}</span>
                       </td>
@@ -195,7 +195,7 @@ export default function Accounts() {
                                 <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                                   <p><span className="font-medium">ID:</span> {player.id}</p>
                                   <p><span className="font-medium">Username:</span> {player.username}</p>
-                                  <p><span className="font-medium">Display:</span> {player.displayName || '-'}</p>
+                                  <p><span className="font-medium">Display:</span> {player.display_name || player.displayName || '-'}</p>
                                   <p><span className="font-medium">Role:</span> {player.role || 'player'}</p>
                                   <p><span className="font-medium">Coins:</span> {player.coins ?? 0}</p>
                                 </div>

@@ -146,11 +146,11 @@ router.get('/champions', async (req, res) => {
 
 router.get('/me', async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password_hash');
+    const user = await User.findById(req.user.id).select('-password_hash').lean();
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(user);
+    res.json({ ...user, id: user._id.toString() });
   } catch (err) {
     console.error('Get current user error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -250,13 +250,18 @@ router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findByIdAndDelete(id);
-
-    if (!user) {
+    const target = await User.findById(id).select('username role');
+    if (!target) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ message: 'User deleted', user: { id: user._id, username: user.username } });
+    if (target.role === 'admin') {
+      return res.status(403).json({ error: 'Cannot delete the main admin account' });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.json({ message: 'User deleted', user: { id: target._id, username: target.username } });
   } catch (err) {
     console.error('Delete user error:', err);
     res.status(500).json({ error: 'Internal server error' });
