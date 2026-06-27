@@ -25,6 +25,10 @@ export const connectSocket = (token) => {
     useStore.getState().setCountdown(data)
   })
 
+  socket.on('presence:recent', (logins) => {
+    useStore.getState().setRecentLogins(logins || [])
+  })
+
   socket.on('achievement:new', (data) => {
     useStore.getState().addStockEvent({ ...data, type: 'achievement' })
   })

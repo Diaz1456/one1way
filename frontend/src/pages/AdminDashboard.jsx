@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
+import RecentLogins from '../components/RecentLogins'
 import Accounts from './admin/Accounts'
 import Leaderboard from './admin/Leaderboard'
 import Achievements from './admin/Achievements'
@@ -248,6 +249,96 @@ export default function AdminDashboard() {
           )}
         </AnimatePresence>
       </div>
+
+      <StockTicker />
+      <AchievementPopup />
+      <OvertakeNotification />
+    </div>
+  )
+}
+
+const StockTickerItem = ({ event, onDismiss }) => (
+  <motion.span
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 20 }}
+    transition={{ duration: 0.4 }}
+    onClick={() => onDismiss(event.id)}
+    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs cursor-pointer whitespace-nowrap shrink-0"
+  >
+    {event.type === 'achievement' ? '⭐' : event.type === 'overtake' ? '🚀' : '📊'}
+    {event.message || event.title || 'Update'}
+  </motion.span>
+)
+
+const StockTicker = () => {
+  const { stockEvents, dismissStockEvent } = useStore()
+  return (
+    <AnimatePresence>
+      {stockEvents.length > 0 && (
+        <motion.div
+          initial={{ y: 40 }}
+          animate={{ y: 0 }}
+          exit={{ y: 40 }}
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 overflow-hidden"
+        >
+          <div className="flex gap-3 px-4 py-2 overflow-x-auto scrollbar-hide">
+            {stockEvents.map(ev => (
+              <StockTickerItem key={ev.id} event={ev} onDismiss={dismissStockEvent} />
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+const AchievementPopup = () => {
+  const { stockEvents, dismissStockEvent } = useStore()
+  const achievements = stockEvents.filter(e => e.type === 'achievement')
+
+  return (
+    <div className="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-xs">
+      <AnimatePresence>
+        {achievements.slice(-3).map(ev => (
+          <motion.div
+            key={ev.id}
+            initial={{ opacity: 0, x: 80, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 80, scale: 0.8 }}
+            onClick={() => dismissStockEvent(ev.id)}
+            className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-xl shadow-xl p-4 cursor-pointer"
+          >
+            <p className="font-bold text-sm">Achievement Unlocked!</p>
+            <p className="text-xs mt-1">{ev.message || ev.title || 'New achievement!'}</p>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+const OvertakeNotification = () => {
+  const { stockEvents, dismissStockEvent } = useStore()
+  const overtakes = stockEvents.filter(e => e.type === 'overtake')
+
+  return (
+    <div className="fixed top-20 left-4 z-50 flex flex-col gap-2 max-w-xs">
+      <AnimatePresence>
+        {overtakes.slice(-2).map(ev => (
+          <motion.div
+            key={ev.id}
+            initial={{ opacity: 0, x: -80, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -80, scale: 0.8 }}
+            onClick={() => dismissStockEvent(ev.id)}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-xl p-4 cursor-pointer"
+          >
+            <p className="font-bold text-sm">Team Overtake!</p>
+            <p className="text-xs mt-1">{ev.message || 'Your team has been overtaken!'}</p>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   )
 }

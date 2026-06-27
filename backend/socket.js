@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
-import { PresenceLog } from './models/index.js';
+import { PresenceLog, User } from './models/index.js';
 
 let io = null;
 
-const onlineUsers = new Set();
+const onlineUsers = new Map();
 
 export function setIO(ioInstance) {
   io = ioInstance;
@@ -18,7 +18,7 @@ export function emitToAll(event, data) {
 export function emitToAdmins(event, data) {
   if (io) {
     const adminSockets = [];
-    for (const [socketId, socket] of io.sockets.sockets) {
+    for (const [, socket] of io.sockets.sockets) {
       if (socket.user && socket.user.role === 'admin') {
         adminSockets.push(socket);
       }
@@ -28,7 +28,7 @@ export function emitToAdmins(event, data) {
 }
 
 export function getOnlineUsers() {
-  return onlineUsers;
+  return Array.from(onlineUsers.values());
 }
 
 export async function updatePresence(userId, eventType) {
@@ -36,6 +36,21 @@ export async function updatePresence(userId, eventType) {
     await PresenceLog.create({ user_id: userId, event: eventType });
   } catch (err) {
     console.error('Presence log error:', err);
+  }
+}
+
+export async function broadcastRecentLogins() {
+  try {
+    const logs = await PresenceLog.find({ event: 'connect' })
+      .populate('user_id', 'username')
+      .sort({ timestamp: -1 })
+      .limit(20);
+    const recent = logs
+      .filter(l => l.user_id)
+      .map(l => ({ username: l.user_id.username, timestamp: l.timestamp }));
+    emitToAll('presence:recent', recent);
+  } catch (err) {
+    console.error('Broadcast recent logins error:', err);
   }
 }
 
@@ -84,21 +99,22 @@ export async function setupSocket(server) {
     }
   });
 
-  io.on('connection', (socket) => {
-    const userId = socket.user.id;
-    onlineUsers.add(userId);
+  io.on('connection', async (socket) => {
+    const { id, username } = socket.user;
+    onlineUsers.set(id, { id, username });
 
-    io.emit('presence:update', { onlineUsers: Array.from(onlineUsers) });
-    updatePresence(userId, 'connect');
+    io.emit('presence:update', { onlineUsers: Array.from(onlineUsers.values()) });
+    await updatePresence(id, 'connect');
+    await broadcastRecentLogins();
 
     socket.on('heartbeat', () => {
       socket.data.lastActivity = Date.now();
     });
 
-    socket.on('disconnect', () => {
-      onlineUsers.delete(userId);
-      io.emit('presence:update', { onlineUsers: Array.from(onlineUsers) });
-      updatePresence(userId, 'disconnect');
+    socket.on('disconnect', async () => {
+      onlineUsers.delete(id);
+      io.emit('presence:update', { onlineUsers: Array.from(onlineUsers.values()) });
+      await updatePresence(id, 'disconnect');
     });
   });
 

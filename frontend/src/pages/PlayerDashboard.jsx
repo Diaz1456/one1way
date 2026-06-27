@@ -40,6 +40,7 @@ const LiveClock = () => {
 const CountdownTimer = () => {
   const { countdown } = useStore()
   const [remaining, setRemaining] = useState(0)
+  const [pulse, setPulse] = useState(false)
 
   useEffect(() => {
     if (!countdown.endTime || !countdown.isActive) {
@@ -55,17 +56,33 @@ const CountdownTimer = () => {
     return () => clearInterval(id)
   }, [countdown.endTime, countdown.isActive])
 
+  useEffect(() => {
+    if (!countdown.isActive || remaining <= 0 || remaining > 30) return
+    const speed = remaining <= 10 ? 300 : 600
+    const id = setInterval(() => setPulse(p => !p), speed)
+    return () => clearInterval(id)
+  }, [countdown.isActive, remaining])
+
   if (!countdown.isActive || remaining <= 0) return null
 
-  const h = Math.floor(remaining / 3600)
-  const m = Math.floor((remaining % 3600) / 60)
+  const m = Math.floor(remaining / 60)
   const s = remaining % 60
-  const str = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  const str = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  const isUrgent = remaining <= 30
 
   return (
-    <span className="text-sm font-mono tabular-nums text-orange-500 dark:text-orange-400 font-semibold">
+    <motion.span
+      animate={isUrgent ? {
+        scale: pulse ? [1, 1.08, 1] : [1, 0.97, 1],
+      } : {}}
+      transition={{ duration: 0.3 }}
+      className={`font-mono tabular-nums font-bold text-lg tracking-wider ${
+        isUrgent ? 'text-red-500 animate-blink' : 'text-orange-500 dark:text-orange-400'
+      }`}
+      style={isUrgent ? { textShadow: pulse ? '0 0 8px rgba(239,68,68,0.6)' : 'none' } : {}}
+    >
       {str}
-    </span>
+    </motion.span>
   )
 }
 
@@ -152,6 +169,16 @@ const OvertakeNotification = () => {
         ))}
       </AnimatePresence>
     </div>
+  )
+}
+
+const OnlineCount = () => {
+  const { onlineUsers } = useStore()
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400">
+      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+      {onlineUsers.length} online
+    </span>
   )
 }
 
@@ -253,6 +280,8 @@ const PlayerDashboard = () => {
             <LiveClock />
             <span className="text-gray-300 dark:text-gray-600">|</span>
             <CountdownTimer />
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <OnlineCount />
           </div>
         </div>
 

@@ -37,6 +37,7 @@ const useStore = create((set, get) => ({
 
   socket: null,
   onlineUsers: [],
+  recentLogins: [],
 
   countdown: {
     endTime: null,
@@ -49,6 +50,7 @@ const useStore = create((set, get) => ({
 
   setSocket: (socket) => set({ socket }),
   setOnlineUsers: (users) => set({ onlineUsers: users }),
+  setRecentLogins: (logins) => set({ recentLogins: logins }),
   setCountdown: (countdown) => set({ countdown }),
   setCurrentTask: (task) => set({ currentTask: task }),
   addStockEvent: (event) => {

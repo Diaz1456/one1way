@@ -80,12 +80,12 @@ router.get('/presence', async (req, res) => {
     const recentLogs = await PresenceLog.find({
       timestamp: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
     })
-      .populate('user_id', 'username display_name')
+      .populate('user_id', 'username')
       .sort({ timestamp: -1 })
       .limit(200);
 
     res.json({
-      onlineUsers: Array.from(onlineUsers),
+      onlineUsers,
       recentLogs,
     });
   } catch (err) {

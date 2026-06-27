@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
 import { playCoinUp } from '../../sound'
+import RecentLogins from '../../components/RecentLogins'
 
 const ProgressBar = ({ value, max, color = 'bg-blue-500', label }) => {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
@@ -365,6 +366,8 @@ const Profile = ({ userDetails }) => {
           </div>
         )}
       </div>
+
+      <RecentLogins />
     </motion.div>
   )
 }
