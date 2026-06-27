@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { DailyTask, DailyTaskCompletion, Achievement, Coin } from '../models/index.js';
+import { DailyTask, DailyTaskCompletion } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { broadcastTask } from '../socket.js';
 import { requireValidObjectId } from '../middleware/validate.js';
@@ -149,25 +149,6 @@ router.post('/complete', async (req, res) => {
         date: today,
         completed: true,
       });
-    }
-
-    if (!wasCompleted && completion.completed) {
-      if (task.points_reward > 0) {
-        await Achievement.create({
-          user_id: req.user.id,
-          description: task.description,
-          category: 'daily_task',
-          points: task.points_reward,
-          date_earned: new Date(),
-        });
-      }
-      if (task.coins_reward > 0) {
-        await Coin.findOneAndUpdate(
-          { user_id: req.user.id },
-          { $inc: { amount: task.coins_reward } },
-          { upsert: true }
-        );
-      }
     }
 
     res.json(completion);
