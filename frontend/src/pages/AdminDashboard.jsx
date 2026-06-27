@@ -121,50 +121,67 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shrink-0 z-30">
+      <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
-          <button onClick={() => setSidebarOpen(o => !o)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300">
-            {sidebarOpen ? <FiMenu size={20} /> : <FiMenu size={20} />}
-          </button>
+          <motion.button onClick={() => setSidebarOpen(o => !o)}
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all">
+            <FiMenu size={20} />
+          </motion.button>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">One Way</h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          <DigitalClock />
-          <CountdownDisplay />
-          <div className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
-            <span className="font-medium text-gray-900 dark:text-white">{user.username || 'Admin'}</span>
-            <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 capitalize">{user.role || 'admin'}</span>
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <DigitalClock />
+            <CountdownDisplay />
           </div>
-          <button onClick={toggleNightMode} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Toggle Night Mode">
+          <motion.div whileHover={{ scale: 1.02 }}
+            className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-full border border-blue-100 dark:border-blue-800/50">
+            <span className="font-medium text-sm text-gray-900 dark:text-white">{user.username || 'Admin'}</span>
+            <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 uppercase tracking-wider">{user.role || 'admin'}</span>
+          </motion.div>
+          <motion.button onClick={toggleNightMode}
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-all" title="Toggle Night Mode">
             {preferences.nightMode ? <FiSun size={18} /> : <FiMoon size={18} />}
-          </button>
-          <button onClick={toggleSound} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Toggle Sound">
+          </motion.button>
+          <motion.button onClick={toggleSound}
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-all" title="Toggle Sound">
             {preferences.soundEnabled ? <FiVolume2 size={18} /> : <FiVolumeX size={18} />}
-          </button>
-          <button onClick={() => setRightPanelOpen(o => !o)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 relative" title="Presence & Feedback">
+          </motion.button>
+          <motion.button onClick={() => setRightPanelOpen(o => !o)}
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 relative transition-all" title="Presence & Feedback">
             <FiBell size={18} />
             {feedbackList.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">{feedbackList.length}</span>
+              <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md shadow-red-500/30">{feedbackList.length}</motion.span>
             )}
-          </button>
-          <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500" title="Logout">
+          </motion.button>
+          <motion.button onClick={handleLogout}
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all" title="Logout">
             <FiLogOut size={18} />
-          </button>
+          </motion.button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 shrink-0 ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
+        <motion.aside
+          animate={{ width: sidebarOpen ? 256 : 0 }}
+          transition={{ duration: 0.25, ease: 'easeInOut' }}
+          className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shrink-0 overflow-hidden shadow-sm z-10">
           <nav className="flex-1 py-4 overflow-y-auto">
             {navItems.map(({ path, label, icon: Icon }) => (
               <NavLink
                 key={path}
                 to={path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 mx-2 px-4 py-3 text-sm font-medium rounded-xl transition-all ${
                     isActive
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-r-2 border-blue-500'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-100 dark:border-blue-800/50'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`
                 }
@@ -174,7 +191,7 @@ export default function AdminDashboard() {
               </NavLink>
             ))}
           </nav>
-        </aside>
+        </motion.aside>
 
         <main className="flex-1 overflow-y-auto p-6">
           <AnimatePresence mode="wait">

@@ -195,37 +195,40 @@ const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle }) => {
     <motion.aside
       initial={false}
       animate={{ width: collapsed ? 64 : 220 }}
-      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shrink-0 overflow-hidden"
+      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shrink-0 overflow-hidden shadow-sm z-10"
     >
       <div className="p-3 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
-        {!collapsed && <span className="text-sm font-bold text-gray-800 dark:text-white">Sections</span>}
-        <button
+        {!collapsed && <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Sections</span>}
+        <motion.button
           onClick={() => { playClick(); onToggle() }}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={collapsed ? 'M13 5l7 7-7 7M5 5l7 7-7 7' : 'M11 19l-7-7 7-7m8 14l-7-7 7-7'} />
           </svg>
-        </button>
+        </motion.button>
       </div>
-      <nav className="flex-1 py-2 space-y-1 px-2">
+      <nav className="flex-1 py-3 space-y-1 px-2">
         {tabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
           return (
-            <button
+            <motion.button
               key={tab.id}
               onClick={() => handleTab(tab)}
+              whileHover={{ x: 2 }}
+              whileTap={{ scale: 0.98 }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                 ${isActive
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-sm'
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/50'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                 }`}
               title={collapsed ? tab.label : undefined}
             >
               <Icon className="w-5 h-5 shrink-0" />
               {!collapsed && <span>{tab.label}</span>}
-            </button>
+            </motion.button>
           )
         })}
       </nav>
@@ -271,12 +274,12 @@ const PlayerDashboard = () => {
         duration: 3000
       }} />
 
-      <header className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 shrink-0 z-30">
+      <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             ONE WAY
           </h1>
-          <div className="hidden sm:flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <div className="hidden md:flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
             <LiveClock />
             <span className="text-gray-300 dark:text-gray-600">|</span>
             <CountdownTimer />
@@ -285,48 +288,53 @@ const PlayerDashboard = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {rank && (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-xs font-semibold">
+            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-600 dark:text-purple-400 rounded-full text-xs font-bold shadow-sm">
               #{rank}
-            </span>
+            </motion.span>
           )}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-full">
+          <motion.div whileHover={{ scale: 1.02 }}
+            className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-full border border-gray-100 dark:border-gray-600/50">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+              <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover ring-2 ring-white dark:ring-gray-600" />
             ) : (
-              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white dark:ring-gray-600">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <span className="text-sm font-medium text-gray-700 dark:text-gray-200 max-w-[120px] truncate">
               {displayName}
             </span>
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
             onClick={() => { playClick(); toggleNightMode() }}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all"
             title="Toggle night mode"
           >
             {preferences.nightMode ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             onClick={() => { playClick(); toggleSound() }}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all"
             title="Toggle sound"
           >
             {preferences.soundEnabled ? <HiOutlineVolumeUp className="w-5 h-5" /> : <HiOutlineVolumeOff className="w-5 h-5" />}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             onClick={handleLogout}
-            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
             title="Logout"
           >
             <HiOutlineLogout className="w-5 h-5" />
-          </button>
+          </motion.button>
         </div>
       </header>
 
