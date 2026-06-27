@@ -1,7 +1,9 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { DailyTask, DailyTaskCompletion, Achievement, Coin } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { broadcastTask } from '../socket.js';
+import { requireValidObjectId } from '../middleware/validate.js';
 
 const router = Router();
 
@@ -22,21 +24,22 @@ router.get('/current', async (req, res) => {
         task_id: task._id,
         date: today,
       });
-
-      task._doc.completed = completion ? completion.completed : false;
+      const taskObj = task.toObject();
+      taskObj.completed = completion ? completion.completed : false;
+      return res.json(taskObj);
     }
 
     res.json(task);
   } catch (err) {
     console.error('Get current task error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to get current task' });
   }
 });
 
 router.post('/', requireAdmin, async (req, res) => {
   const { description, points_reward, coins_reward } = req.body;
 
-  if (!description) {
+  if (!description || typeof description !== 'string' || !description.trim()) {
     return res.status(400).json({ error: 'Description is required' });
   }
 
@@ -44,9 +47,9 @@ router.post('/', requireAdmin, async (req, res) => {
     await DailyTask.updateMany({ is_active: true }, { is_active: false });
 
     const task = await DailyTask.create({
-      description,
-      points_reward: points_reward || 0,
-      coins_reward: coins_reward || 0,
+      description: description.trim(),
+      points_reward: parseInt(points_reward, 10) || 0,
+      coins_reward: parseInt(coins_reward, 10) || 0,
       is_active: true,
     });
 
@@ -55,15 +58,15 @@ router.post('/', requireAdmin, async (req, res) => {
     res.status(201).json(task);
   } catch (err) {
     console.error('Create task error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to create task' });
   }
 });
 
 router.post('/complete', async (req, res) => {
   const { task_id } = req.body;
 
-  if (!task_id) {
-    return res.status(400).json({ error: 'task_id is required' });
+  if (!task_id || !mongoose.Types.ObjectId.isValid(task_id)) {
+    return res.status(400).json({ error: 'Valid task_id is required' });
   }
 
   try {
@@ -119,7 +122,7 @@ router.post('/complete', async (req, res) => {
     res.json(completion);
   } catch (err) {
     console.error('Complete task error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to complete task' });
   }
 });
 
@@ -129,6 +132,9 @@ router.get('/history', requireAdmin, async (req, res) => {
     const filter = {};
 
     if (player_id) {
+      if (!mongoose.Types.ObjectId.isValid(player_id)) {
+        return res.status(400).json({ error: 'Invalid player_id in query' });
+      }
       filter.user_id = player_id;
     }
     if (from_date) {
@@ -146,7 +152,7 @@ router.get('/history', requireAdmin, async (req, res) => {
     res.json(completions);
   } catch (err) {
     console.error('Task history error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to load task history' });
   }
 });
 

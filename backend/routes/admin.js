@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { GlobalCountdown, PresenceLog, StockEvent } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { broadcastCountdown, getOnlineUsers } from '../socket.js';
@@ -17,7 +18,7 @@ router.post('/countdown', async (req, res) => {
 
   try {
     if (action === 'start') {
-      const totalSeconds = (parseInt(minutes || 0) * 60) + parseInt(seconds || 0);
+      const totalSeconds = (parseInt(minutes || 0, 10) * 60) + parseInt(seconds || 0, 10);
       if (totalSeconds <= 0) {
         return res.status(400).json({ error: 'Duration must be greater than 0' });
       }
@@ -54,7 +55,7 @@ router.post('/countdown', async (req, res) => {
     }
   } catch (err) {
     console.error('Countdown error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to manage countdown' });
   }
 });
 
@@ -69,7 +70,7 @@ router.get('/countdown', async (req, res) => {
     res.json(countdown);
   } catch (err) {
     console.error('Get countdown error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to get countdown' });
   }
 });
 
@@ -90,7 +91,7 @@ router.get('/presence', async (req, res) => {
     });
   } catch (err) {
     console.error('Get presence error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to get presence data' });
   }
 });
 
@@ -100,7 +101,7 @@ router.get('/events', async (req, res) => {
     res.json(events);
   } catch (err) {
     console.error('Get events error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to get events' });
   }
 });
 

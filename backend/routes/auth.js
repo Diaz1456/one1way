@@ -8,12 +8,17 @@ const router = Router();
 
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
+  if (typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Username and password must be strings' });
+  }
+
   try {
-    const user = await User.findOne({ username: username.toLowerCase() });
+    const user = await User.findOne({ username: username.toLowerCase().trim() });
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -25,13 +30,13 @@ router.post('/login', async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' }
     );
@@ -40,7 +45,7 @@ router.post('/login', async (req, res) => {
       accessToken,
       refreshToken,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         username: user.username,
         role: user.role,
         avatar_url: user.avatar_url,
@@ -48,14 +53,23 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
+
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  if (typeof username !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'Username and password must be strings' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
   const token = req.headers.authorization?.split(' ')[1];
@@ -69,20 +83,20 @@ router.post('/register', async (req, res) => {
       return res.status(403).json({ error: 'Admin only' });
     }
 
-    const existing = await User.findOne({ username: username.toLowerCase() });
+    const existing = await User.findOne({ username: username.toLowerCase().trim() });
     if (existing) {
       return res.status(409).json({ error: 'Username already exists' });
     }
 
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({
-      username: username.toLowerCase(),
+      username: username.toLowerCase().trim(),
       password_hash: hash,
       role: 'player',
     });
 
     res.status(201).json({
-      id: user._id,
+      id: user._id.toString(),
       username: user.username,
       role: user.role,
       avatar_url: user.avatar_url,
@@ -90,10 +104,13 @@ router.post('/register', async (req, res) => {
     });
   } catch (err) {
     if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Invalid token' });
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    if (err.code === 11000) {
+      return res.status(409).json({ error: 'Username already exists' });
     }
     console.error('Register error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Registration failed' });
   }
 });
 
@@ -106,20 +123,20 @@ router.post('/refresh', async (req, res) => {
   try {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select('username role avatar_url');
 
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
     const accessToken = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
 
     const newRefreshToken = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' }
     );
@@ -128,32 +145,36 @@ router.post('/refresh', async (req, res) => {
       accessToken,
       refreshToken: newRefreshToken,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         username: user.username,
         role: user.role,
         avatar_url: user.avatar_url,
       },
     });
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+    console.error('Refresh error:', err);
+    res.status(500).json({ error: 'Token refresh failed' });
   }
 });
 
 router.post('/change-password', authenticateToken, async (req, res) => {
   const { current_password, new_password, confirm_password } = req.body;
 
-  if (!current_password) {
-    return res.status(400).json({ error: 'Current password is required' });
+  if (!current_password || !new_password || !confirm_password) {
+    return res.status(400).json({ error: 'Current password, new password, and confirm password are required' });
   }
-  if (!new_password) {
-    return res.status(400).json({ error: 'New password is required' });
+
+  if (typeof current_password !== 'string' || typeof new_password !== 'string' || typeof confirm_password !== 'string') {
+    return res.status(400).json({ error: 'All password fields must be strings' });
   }
-  if (!confirm_password) {
-    return res.status(400).json({ error: 'Confirm password is required' });
-  }
+
   if (new_password !== confirm_password) {
     return res.status(400).json({ error: 'New password and confirm password do not match' });
   }
+
   if (new_password.length < 6) {
     return res.status(400).json({ error: 'New password must be at least 6 characters' });
   }
@@ -175,7 +196,7 @@ router.post('/change-password', authenticateToken, async (req, res) => {
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
     console.error('Change password error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to change password' });
   }
 });
 

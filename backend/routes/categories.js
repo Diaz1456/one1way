@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Category } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
+import { requireValidObjectId } from '../middleware/validate.js';
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('List categories error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to list categories' });
   }
 });
 
@@ -31,11 +32,11 @@ router.post('/', requireAdmin, async (req, res) => {
     res.status(201).json({ ...category.toObject(), id: category._id.toString() });
   } catch (err) {
     console.error('Create category error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to create category' });
   }
 });
 
-router.put('/:id', requireAdmin, async (req, res) => {
+router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
@@ -52,11 +53,11 @@ router.put('/:id', requireAdmin, async (req, res) => {
     res.json({ ...category, id: category._id.toString() });
   } catch (err) {
     console.error('Update category error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to update category' });
   }
 });
 
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) => {
   try {
     const { id } = req.params;
     const category = await Category.findByIdAndDelete(id);
@@ -66,7 +67,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     res.json({ message: 'Category deleted', category: { id: category._id, name: category.name } });
   } catch (err) {
     console.error('Delete category error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to delete category' });
   }
 });
 
