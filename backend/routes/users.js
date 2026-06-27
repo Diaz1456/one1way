@@ -60,8 +60,9 @@ router.get('/', async (req, res) => {
       filter.role = 'player';
     }
 
-    const users = await User.find(filter).select('-password_hash').sort({ createdAt: -1 });
-    res.json(users);
+    const users = await User.find(filter).select('-password_hash').sort({ createdAt: -1 }).lean();
+    const result = users.map(u => ({ ...u, id: u._id.toString() }));
+    res.json(result);
   } catch (err) {
     console.error('List users error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -97,7 +98,8 @@ router.get('/leaderboard', async (req, res) => {
       { $sort: { total_points: -1 } },
       { $project: { password_hash: 0, achievements: 0 } },
     ]);
-    res.json(results);
+    const mapped = results.map(u => ({ ...u, id: u._id.toString() }));
+    res.json(mapped);
   } catch (err) {
     console.error('Leaderboard error:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -134,7 +136,8 @@ router.get('/champions', async (req, res) => {
       { $limit: 5 },
       { $project: { password_hash: 0, achievements: 0 } },
     ]);
-    res.json(results);
+    const mapped = results.map(u => ({ ...u, id: u._id.toString() }));
+    res.json(mapped);
   } catch (err) {
     console.error('Champions error:', err);
     res.status(500).json({ error: 'Internal server error' });
