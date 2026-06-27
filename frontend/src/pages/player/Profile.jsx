@@ -17,6 +17,14 @@ const fadeSlideCard = {
   animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: 'easeOut' } }
 }
 
+const rankGradients = [
+  'from-yellow-400 to-amber-500',
+  'from-gray-300 to-slate-400',
+  'from-amber-500 to-orange-500',
+]
+
+const rankIcons = ['🥇', '🥈', '🥉']
+
 const ProgressBar = ({ value, max, color = 'bg-blue-500', label, delay = 0 }) => {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
   return (
@@ -43,8 +51,8 @@ const ChampionsRow = ({ onSelect }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get('/users/leaderboard?limit=5')
-      .then(({ data }) => setChampions(Array.isArray(data) ? data : data.users || data.leaderboard || []))
+    api.get('/users/champions')
+      .then(({ data }) => setChampions(Array.isArray(data) ? data : []))
       .catch(() => toast.error('Failed to load champions'))
       .finally(() => setLoading(false))
   }, [])
@@ -63,44 +71,66 @@ const ChampionsRow = ({ onSelect }) => {
     return <p className="text-center text-gray-400 text-sm py-4">No champions yet</p>
   }
 
+  const maxScore = Math.max(...champions.map(c => c.total_points ?? c.score ?? 0), 1)
+
   return (
-    <motion.div variants={stagger} initial="initial" animate="animate" className="flex gap-3 justify-center flex-wrap">
-      {champions.map((champ, idx) => {
-        const name = champ.username || 'Player'
-        const avatar = champ.avatar_url || ''
-        const score = champ.score ?? champ.points ?? 0
-        const isTop = idx === 0
-        return (
-          <motion.button
-            key={champ.id || idx}
-            variants={fadeUp}
-            whileHover={{ scale: 1.05, y: -4 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onSelect(champ)}
-            className={`flex flex-col items-center gap-1 p-3 rounded-2xl cursor-pointer transition-all ${
-              isTop
-                ? 'bg-gradient-to-b from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 ring-2 ring-yellow-400/50 shadow-lg shadow-yellow-500/10'
-                : 'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md'
-            }`}
-          >
-            {avatar ? (
-              <img src={avatar} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white dark:ring-gray-600" />
-            ) : (
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ${
-                isTop
-                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                  : 'bg-gradient-to-br from-blue-400 to-purple-500'
-              }`}>
-                {name.charAt(0).toUpperCase()}
+    <div className="space-y-4">
+      <motion.div variants={stagger} initial="initial" animate="animate" className="flex gap-2 sm:gap-3 justify-center flex-wrap items-end">
+        {champions.map((champ, idx) => {
+          const name = champ.username || 'Player'
+          const avatar = champ.avatar_url || ''
+          const score = champ.total_points ?? champ.score ?? champ.points ?? 0
+          const height = Math.max((score / maxScore) * 100, 20)
+          const isPodium = idx < 3
+          return (
+            <motion.button
+              key={champ.id || idx}
+              variants={fadeUp}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSelect(champ)}
+              className="flex flex-col items-center gap-1.5 group"
+            >
+              <motion.div
+                animate={{ height }}
+                transition={{ type: 'spring', stiffness: 100, damping: 20, delay: idx * 0.1 }}
+                className={`w-14 sm:w-16 rounded-t-xl flex flex-col items-center justify-end pb-2 pt-1 transition-all
+                  ${isPodium
+                    ? `bg-gradient-to-t ${rankGradients[idx]} shadow-lg`
+                    : 'bg-gradient-to-t from-blue-400 to-blue-300 dark:from-blue-700 dark:to-blue-600 shadow-md'
+                  }`}
+              >
+                <span className="text-lg sm:text-xl">{isPodium ? rankIcons[idx] : `#${idx + 1}`}</span>
+                <span className="text-[10px] font-bold text-white/90 tabular-nums">{score.toLocaleString()}</span>
+              </motion.div>
+              <div className="flex flex-col items-center gap-0.5 px-1">
+                {avatar ? (
+                  <img src={avatar} alt="" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-white dark:ring-gray-600" />
+                ) : (
+                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold shadow-sm ${
+                    isPodium ? `bg-gradient-to-br ${rankGradients[idx]}` : 'bg-gradient-to-br from-blue-400 to-purple-500'
+                  }`}>
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-200 max-w-[56px] truncate leading-tight">{name}</span>
               </div>
-            )}
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-200 max-w-[48px] sm:max-w-[64px] lg:max-w-[80px] truncate">{name}</span>
-            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{score.toLocaleString()}</span>
-            {isTop && <HiOutlineBadgeCheck className="w-4 h-4 text-yellow-500" />}
-          </motion.button>
-        )
-      })}
-    </motion.div>
+            </motion.button>
+          )
+        })}
+      </motion.div>
+      {champions[0] && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center text-[10px] text-gray-400 dark:text-gray-500"
+        >
+          👑 <span className="font-semibold text-yellow-600 dark:text-yellow-400">{champions[0].username}</span> leads with{' '}
+          <span className="font-bold tabular-nums">{(champions[0].total_points ?? champions[0].score ?? 0).toLocaleString()}</span> points
+        </motion.p>
+      )}
+    </div>
   )
 }
 

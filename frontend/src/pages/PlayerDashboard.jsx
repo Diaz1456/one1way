@@ -7,20 +7,22 @@ import {
   HiOutlineUsers, HiOutlineChatAlt2, HiOutlineCog,
   HiOutlineLogout, HiOutlineVolumeUp, HiOutlineVolumeOff
 } from 'react-icons/hi'
+import { FiAward } from 'react-icons/fi'
 import api from '../api'
 import useStore from '../store'
 import { playClick } from '../sound'
 import { disconnectSocket } from '../socket'
 import ThemeToggle from '../components/ThemeToggle'
-import TeamRankings from '../components/TeamRankings'
 import Profile from './player/Profile'
 import DailyTask from './player/DailyTask'
 import TeamView from './player/TeamView'
 import FeedbackForm from './player/FeedbackForm'
+import HallOfFame from './player/HallOfFame'
 import Settings from './player/Settings'
 
 const tabs = [
   { id: 'profile', label: 'My Profile', icon: HiOutlineUser, path: '/player/profile' },
+  { id: 'hall-of-fame', label: 'Hall of Fame', icon: FiAward, path: '/player/hall-of-fame' },
   { id: 'daily-task', label: 'Daily Task', icon: HiOutlineClipboardCheck, path: '/player/daily-task' },
   { id: 'team', label: 'My Team', icon: HiOutlineUsers, path: '/player/team' },
   { id: 'feedback', label: 'Feedback', icon: HiOutlineChatAlt2, path: '/player/feedback' },
@@ -588,6 +590,7 @@ const PlayerDashboard = () => {
                 <Route path="profile" element={<Profile userDetails={userDetails} />} />
                 <Route path="daily-task" element={<DailyTask />} />
                 <Route path="team" element={<TeamView />} />
+                <Route path="hall-of-fame" element={<HallOfFame />} />
                 <Route path="feedback" element={<FeedbackForm />} />
                 <Route path="settings" element={<Settings userDetails={userDetails} />} />
               </Routes>

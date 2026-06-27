@@ -8,7 +8,7 @@ import { User, Team, Achievement, Coin, Note } from '../models/index.js';
 import mongoose from 'mongoose';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { requireValidObjectId } from '../middleware/validate.js';
-import { broadcastAdminNote } from '../socket.js';
+import { broadcastAdminNote, broadcastTeams } from '../socket.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -154,6 +154,76 @@ router.get('/champions', async (req, res) => {
   } catch (err) {
     console.error('Champions error:', err);
     res.status(500).json({ error: 'Failed to load champions' });
+  }
+});
+
+router.get('/halloffame', async (req, res) => {
+  try {
+    const type = req.query.type || 'players';
+    const limit = Math.min(parseInt(req.query.limit) || 10, 20);
+
+    if (type === 'teams') {
+      const teams = await Team.aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: 'team_id',
+            as: 'members',
+          },
+        },
+        {
+          $addFields: {
+            member_count: { $size: '$members' },
+          },
+        },
+        { $project: { members: 0 } },
+        { $sort: { cash: -1, name: 1 } },
+        { $limit: limit },
+      ]);
+      const result = teams.map((t, i) => ({ ...t, id: t._id.toString(), rank: i + 1 }));
+      return res.json(result);
+    }
+
+    const results = await User.aggregate([
+      { $match: { role: 'player' } },
+      {
+        $lookup: {
+          from: 'teams',
+          localField: 'team_id',
+          foreignField: '_id',
+          as: 'team',
+        },
+      },
+      { $unwind: { path: '$team', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'achievements',
+          localField: '_id',
+          foreignField: 'user_id',
+          as: 'achievements',
+        },
+      },
+      {
+        $addFields: {
+          total_points: {
+            $reduce: {
+              input: '$achievements',
+              initialValue: 0,
+              in: { $add: ['$$value', { $ifNull: ['$$this.points', 0] }] },
+            },
+          },
+        },
+      },
+      { $sort: { total_points: -1 } },
+      { $limit: limit },
+      { $project: { password_hash: 0, achievements: 0 } },
+    ]);
+    const mapped = results.map((u, i) => ({ ...u, id: u._id.toString(), rank: i + 1 }));
+    res.json(mapped);
+  } catch (err) {
+    console.error('Hall of Fame error:', err);
+    res.status(500).json({ error: 'Failed to load hall of fame' });
   }
 });
 
