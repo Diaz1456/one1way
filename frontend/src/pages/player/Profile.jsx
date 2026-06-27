@@ -435,14 +435,14 @@ const Profile = ({ userDetails }) => {
         </motion.div>
       )}
 
-      {/* Top 5 Champions */}
+      {/* Top Champions */}
       <motion.div variants={fadeSlideCard}
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
             <HiOutlineBadgeCheck className="w-4 h-4 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Top 5 Champions</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Top Champions</h2>
         </div>
         <ChampionsRow onSelect={setSelectedChampion} />
       </motion.div>
