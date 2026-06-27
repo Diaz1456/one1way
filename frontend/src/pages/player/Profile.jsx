@@ -1,10 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar } from 'react-icons/hi'
+import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineFilter } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
 import { playCoinUp } from '../../sound'
+
+const ProgressBar = ({ value, max, color = 'bg-blue-500', label }) => {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
+  return (
+    <div className="flex items-center gap-3">
+      {label && <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-24 shrink-0 truncate">{label}</span>}
+      <div className="flex-1 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className={`h-full rounded-full ${color}`}
+        />
+      </div>
+      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-16 text-right shrink-0">
+        {value.toLocaleString()}
+      </span>
+    </div>
+  )
+}
 
 const ChampionsRow = ({ onSelect }) => {
   const [champions, setChampions] = useState([])
@@ -162,11 +182,14 @@ const Profile = ({ userDetails }) => {
   const [rank, setRank] = useState(null)
   const [coins, setCoins] = useState(0)
   const [selectedChampion, setSelectedChampion] = useState(null)
+  const [filter, setFilter] = useState('all')
 
   const user = userDetails || auth.user || {}
   const displayName = user.display_name || user.displayName || user.username || 'Player'
   const avatarUrl = user.avatar_url || user.avatar || ''
-  const totalScore = user.totalScore ?? user.score ?? user.points ?? 0
+
+  const achievements = userDetails?.achievements || []
+  const totalScore = useMemo(() => achievements.reduce((s, a) => s + (a.points || a.score || 0), 0), [achievements])
   const userId = user.id
 
   useEffect(() => {
@@ -189,12 +212,34 @@ const Profile = ({ userDetails }) => {
 
   useEffect(() => { playCoinUp() }, [])
 
+  const categories = useMemo(() => {
+    const map = {}
+    achievements.forEach(ach => {
+      const cat = ach.category || ach.type || 'General'
+      if (!map[cat]) map[cat] = { name: cat, points: 0, count: 0 }
+      map[cat].points += ach.points || ach.score || 0
+      map[cat].count += 1
+    })
+    return Object.values(map).sort((a, b) => b.points - a.points)
+  }, [achievements])
+
+  const maxCategoryPoints = categories.length > 0 ? Math.max(...categories.map(c => c.points)) : 1
+
+  const categoryColors = [
+    'bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500',
+    'bg-rose-500', 'bg-cyan-500', 'bg-pink-500', 'bg-lime-500'
+  ]
+
+  const uniqueCategories = ['all', ...categories.map(c => c.name)]
+  const filtered = filter === 'all' ? achievements : achievements.filter(a => (a.category || a.type || 'General') === filter)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto space-y-6"
+      className="max-w-5xl mx-auto space-y-6"
     >
+      {/* Profile card with avatar, name, rank, score, coins */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sm:p-8 text-center">
         <motion.div
           initial={{ scale: 0 }}
@@ -254,18 +299,112 @@ const Profile = ({ userDetails }) => {
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6"
-      >
+      {/* Score by Category */}
+      {categories.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <HiOutlineChartBar className="w-6 h-6 text-blue-500" />
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Score by Category</h2>
+          </div>
+          <div className="mt-4 space-y-3">
+            {categories.map((cat, i) => (
+              <ProgressBar
+                key={cat.name}
+                label={cat.name}
+                value={cat.points}
+                max={maxCategoryPoints}
+                color={categoryColors[i % categoryColors.length]}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Achievements grid */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <HiOutlineStar className="w-6 h-6 text-yellow-500" />
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Achievements {achievements.length > 0 && <span className="text-sm font-normal text-gray-400">({achievements.length})</span>}
+            </h2>
+          </div>
+          {uniqueCategories.length > 1 && (
+            <div className="flex items-center gap-2">
+              <HiOutlineFilter className="w-4 h-4 text-gray-400" />
+              <select
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {uniqueCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {achievements.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-8">No achievements yet</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-8">No achievements match this category</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AnimatePresence>
+              {filtered.map((ach, i) => (
+                <motion.div
+                  key={ach.id || i}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.03 }}
+                  layout
+                  className="group bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600/40 p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700/50 transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+                      <HiOutlineStar className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                          {ach.title || ach.name || 'Achievement'}
+                        </p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">
+                          {ach.category || ach.type || 'General'}
+                        </span>
+                      </div>
+                      {ach.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{ach.description}</p>
+                      )}
+                      {(ach.date_earned || ach.dateEarned) && (
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">
+                          {new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="inline-flex items-center gap-0.5 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
+                        +{ach.points || ach.score || 0}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {/* Top 5 Champions */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex items-center gap-2 mb-4">
-            <HiOutlineBadgeCheck className="w-5 h-5 text-yellow-500" />
+          <HiOutlineBadgeCheck className="w-5 h-5 text-yellow-500" />
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Top 5 Champions</h2>
         </div>
         <ChampionsRow onSelect={setSelectedChampion} />
-      </motion.div>
+      </div>
 
       {selectedChampion && (
         <ChampionModal champion={selectedChampion} onClose={() => setSelectedChampion(null)} />

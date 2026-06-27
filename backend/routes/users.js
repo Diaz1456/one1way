@@ -171,12 +171,15 @@ router.get('/:id/details', async (req, res) => {
 
     const coin = await Coin.findOne({ user_id: id });
 
+    const totalPoints = achievements.reduce((sum, a) => sum + (a.points || 0), 0);
+
     const response = {
       ...user.toObject(),
       team_name: user.team_id?.name || null,
       team_color: user.team_id?.color || null,
       team_id: user.team_id?._id || null,
       achievements,
+      total_points: totalPoints,
       coins: coin?.amount || 0,
     };
 

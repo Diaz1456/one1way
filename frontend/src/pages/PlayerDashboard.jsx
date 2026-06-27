@@ -11,7 +11,6 @@ import api from '../api'
 import useStore from '../store'
 import { playClick } from '../sound'
 import Profile from './player/Profile'
-import PlayerAchievements from './player/PlayerAchievements'
 import DailyTask from './player/DailyTask'
 import TeamView from './player/TeamView'
 import FeedbackForm from './player/FeedbackForm'
@@ -19,7 +18,6 @@ import Settings from './player/Settings'
 
 const tabs = [
   { id: 'profile', label: 'My Profile', icon: HiOutlineUser, path: '/player/profile' },
-  { id: 'achievements', label: 'Achievements', icon: HiOutlineStar, path: '/player/achievements' },
   { id: 'daily-task', label: 'Daily Task', icon: HiOutlineClipboardCheck, path: '/player/daily-task' },
   { id: 'team', label: 'My Team', icon: HiOutlineUsers, path: '/player/team' },
   { id: 'feedback', label: 'Feedback', icon: HiOutlineChatAlt2, path: '/player/feedback' },
@@ -320,7 +318,6 @@ const PlayerDashboard = () => {
             <Routes>
               <Route index element={<Profile userDetails={userDetails} />} />
               <Route path="profile" element={<Profile userDetails={userDetails} />} />
-              <Route path="achievements" element={<PlayerAchievements userDetails={userDetails} />} />
               <Route path="daily-task" element={<DailyTask />} />
               <Route path="team" element={<TeamView />} />
               <Route path="feedback" element={<FeedbackForm />} />
