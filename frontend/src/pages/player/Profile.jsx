@@ -40,7 +40,7 @@ const ProgressBar = ({ value, max, color = 'bg-blue-500', label, delay = 0 }) =>
         />
       </div>
       <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-16 text-right shrink-0 tabular-nums">
-        {value.toLocaleString()}
+        {Number.isInteger(value) ? value.toLocaleString() : value.toFixed(1)}
       </span>
     </motion.div>
   )
@@ -175,6 +175,19 @@ const ChampionModal = ({ champion, onClose }) => {
 
   const name = champion?.username || 'Player'
 
+  const categories = useMemo(() => {
+    const map = {}
+    achievements.forEach(ach => {
+      const cat = ach.category || ach.type || 'General'
+      if (!map[cat]) map[cat] = { name: cat, points: 0, count: 0 }
+      map[cat].points += parseFloat(ach.points || ach.score || 0)
+      map[cat].count += 1
+    })
+    return Object.values(map).sort((a, b) => b.points - a.points)
+  }, [achievements])
+
+  const maxCatPoints = categories.length > 0 ? Math.max(...categories.map(c => c.points)) : 1
+
   return (
     <AnimatePresence>
       <motion.div
@@ -223,27 +236,51 @@ const ChampionModal = ({ champion, onClose }) => {
             ) : achievements.length === 0 ? (
               <p className="text-center text-gray-400 text-sm py-8">No achievements yet</p>
             ) : (
-              <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
-                {achievements.map((ach, i) => (
-                  <motion.div key={ach.id || i} variants={fadeUp}
-                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <HiOutlineStar className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-800 dark:text-white truncate">
-                        {ach.category || ach.type || 'Achievement'}
-                      </p>
-                      {(ach.date_earned || ach.dateEarned) && (
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}</p>
-                      )}
-                    </div>
-                    {ach.points != null && (
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">+{ach.points}</span>
-                    )}
+              <>
+                {categories.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-wrap gap-1.5 mb-4"
+                  >
+                    {categories.map((cat, i) => (
+                      <motion.div
+                        key={cat.name}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700"
+                      >
+                        <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400">{cat.name}:</span>
+                        <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                          {Number.isInteger(cat.points) ? cat.points.toLocaleString() : cat.points.toFixed(1)}
+                        </span>
+                      </motion.div>
+                    ))}
                   </motion.div>
-                ))}
-              </motion.div>
+                )}
+                <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
+                  {achievements.map((ach, i) => (
+                    <motion.div key={ach.id || i} variants={fadeUp}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group">
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shrink-0 shadow-sm">
+                        <HiOutlineStar className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-800 dark:text-white truncate">
+                          {ach.category || ach.type || 'Achievement'}
+                        </p>
+                        {(ach.date_earned || ach.dateEarned) && (
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}</p>
+                        )}
+                      </div>
+                      {ach.points != null && (
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">+{Number.isInteger(ach.points) ? ach.points : parseFloat(ach.points).toFixed(1)}</span>
+                      )}
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </>
             )}
           </div>
         </motion.div>
@@ -284,7 +321,7 @@ const Profile = ({ userDetails }) => {
   const avatarUrl = user.avatar_url || ''
 
   const achievements = userDetails?.achievements || []
-  const totalScore = useMemo(() => achievements.reduce((s, a) => s + (a.points || a.score || 0), 0), [achievements])
+  const totalScore = useMemo(() => achievements.reduce((s, a) => s + parseFloat(a.points || a.score || 0), 0), [achievements])
   const userId = user.id
 
   useEffect(() => {
@@ -312,7 +349,7 @@ const Profile = ({ userDetails }) => {
     achievements.forEach(ach => {
       const cat = ach.category || ach.type || 'General'
       if (!map[cat]) map[cat] = { name: cat, points: 0, count: 0 }
-      map[cat].points += ach.points || ach.score || 0
+      map[cat].points += parseFloat(ach.points || ach.score || 0)
       map[cat].count += 1
     })
     return Object.values(map).sort((a, b) => b.points - a.points)
@@ -361,7 +398,7 @@ const Profile = ({ userDetails }) => {
         <motion.div variants={fadeUp} className="mt-6 flex items-center justify-center gap-8">
           <motion.div whileHover={{ scale: 1.05 }} className="text-center">
             <p className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tabular-nums">
-              {totalScore.toLocaleString()}
+              {Number.isInteger(totalScore) ? totalScore.toLocaleString() : totalScore.toFixed(1)}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Score</p>
           </motion.div>

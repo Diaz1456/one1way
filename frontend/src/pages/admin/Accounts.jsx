@@ -182,7 +182,7 @@ export default function Accounts() {
       const achs = data.achievements || []
       achs.forEach(a => {
         const cat = a.category || 'General'
-        breakdown[cat] = (breakdown[cat] || 0) + (a.points || 0)
+        breakdown[cat] = (breakdown[cat] || 0) + parseFloat(a.points || 0)
       })
       const enriched = { ...data, categoryBreakdown: breakdown, taskCount: achs.filter(a => a.category === 'daily_task').length }
       setDetailCache(prev => ({ ...prev, [player.id]: enriched }))
@@ -410,7 +410,7 @@ export default function Accounts() {
                                       <motion.div key={cat} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                                         className="flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-700/30 rounded-lg text-sm">
                                         <span className="text-gray-600 dark:text-gray-400">{cat}</span>
-                                        <span className="font-bold text-blue-600 dark:text-blue-400">{pts} pts</span>
+                                        <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">{Number.isInteger(pts) ? pts.toLocaleString() : pts.toFixed(1)} pts</span>
                                       </motion.div>
                                     ))}
                                   </div>

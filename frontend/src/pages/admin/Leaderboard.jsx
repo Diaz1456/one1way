@@ -233,7 +233,38 @@ export default function Leaderboard() {
                     No achievements yet
                   </motion.p>
                 ) : (
-                  <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
+                  <>
+                    {(() => {
+                      const catMap = {}
+                      modalData.achievements.forEach(a => {
+                        const cat = a.category || 'General'
+                        catMap[cat] = (catMap[cat] || 0) + parseFloat(a.points || 0)
+                      })
+                      const cats = Object.entries(catMap).sort((a, b) => b[1] - a[1])
+                      return cats.length > 0 ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex flex-wrap gap-1.5 mb-4"
+                        >
+                          {cats.map(([name, pts], i) => (
+                            <motion.div
+                              key={name}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: i * 0.05 }}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700"
+                            >
+                              <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400">{name}:</span>
+                              <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                                {Number.isInteger(pts) ? pts.toLocaleString() : pts.toFixed(1)}
+                              </span>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      ) : null
+                    })()}
+                    <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
                     {modalData.achievements.slice(0, 50).map((ach, i) => (
                       <motion.div key={ach.id || i} variants={cardItem}
                         className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group">
@@ -250,10 +281,11 @@ export default function Leaderboard() {
                             )}
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">+{ach.points || 0}</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform tabular-nums">+{ach.points != null ? (Number.isInteger(ach.points) ? ach.points : parseFloat(ach.points).toFixed(1)) : 0}</span>
                       </motion.div>
                     ))}
                   </motion.div>
+                  </>
                 )}
               </div>
             </motion.div>
