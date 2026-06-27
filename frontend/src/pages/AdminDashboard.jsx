@@ -234,7 +234,7 @@ export default function AdminDashboard() {
                       {feedbackList.slice(0, 20).map((f) => (
                         <div key={f.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-gray-900 dark:text-white">{f.name || f.username || 'Anonymous'}</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{f.sender_user_id?.username || f.sender_username || 'Anonymous'}</span>
                             <button onClick={() => dismissFeedback(f.id)} className="text-gray-400 hover:text-red-400 text-xs">&times;</button>
                           </div>
                           <p className="text-gray-600 dark:text-gray-400">{f.message || f.text}</p>
