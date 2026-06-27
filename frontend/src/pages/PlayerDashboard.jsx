@@ -233,8 +233,8 @@ const PlayerDashboard = () => {
     navigate('/login')
   }
 
-  const displayName = userDetails?.display_name || userDetails?.displayName || auth.user?.display_name || auth.user?.displayName || auth.user?.username || 'Player'
-  const avatarUrl = userDetails?.avatar_url || userDetails?.avatar || auth.user?.avatar_url || auth.user?.avatar || ''
+  const displayName = userDetails?.username || auth.user?.username || 'Player'
+  const avatarUrl = userDetails?.avatar_url || auth.user?.avatar_url || ''
   const rank = userDetails?.rank || auth.user?.rank
 
   return (

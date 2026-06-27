@@ -155,7 +155,7 @@ const TeamView = () => {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {members.map((member, i) => {
-              const name = member.displayName || member.username || member.name || 'Player'
+              const name = member.username || member.name || 'Player'
               const avatar = member.avatar || ''
               return (
                 <motion.div

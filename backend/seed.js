@@ -14,7 +14,6 @@ async function seed() {
     if (existing) {
       existing.password_hash = adminHash;
       existing.role = 'admin';
-      existing.display_name = 'Administrator';
       await existing.save();
       console.log('Admin password updated:', { id: existing._id, username: existing.username });
     } else {
@@ -22,7 +21,6 @@ async function seed() {
         username,
         password_hash: adminHash,
         role: 'admin',
-        display_name: 'Administrator',
       });
       console.log('Admin user created:', { id: admin._id, username: admin.username, role: admin.role });
     }
@@ -43,11 +41,11 @@ async function seed() {
       const playerHash = await bcrypt.hash('password123', 10);
 
       const players = [
-        { username: 'player1', display_name: 'Player One', teamIdx: 0 },
-        { username: 'player2', display_name: 'Player Two', teamIdx: 1 },
-        { username: 'player3', display_name: 'Player Three', teamIdx: 2 },
-        { username: 'player4', display_name: 'Player Four', teamIdx: 0 },
-        { username: 'player5', display_name: 'Player Five', teamIdx: 1 },
+        { username: 'player1', teamIdx: 0 },
+        { username: 'player2', teamIdx: 1 },
+        { username: 'player3', teamIdx: 2 },
+        { username: 'player4', teamIdx: 0 },
+        { username: 'player5', teamIdx: 1 },
       ];
 
       for (const p of players) {
@@ -57,7 +55,6 @@ async function seed() {
             username: p.username,
             password_hash: playerHash,
             role: 'player',
-            display_name: p.display_name,
             team_id: teams[p.teamIdx]._id,
           });
           console.log('Player created:', { id: user._id, username: user.username, role: user.role });

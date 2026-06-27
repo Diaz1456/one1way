@@ -139,7 +139,7 @@ router.get('/history', requireAdmin, async (req, res) => {
     }
 
     const completions = await DailyTaskCompletion.find(filter)
-      .populate('user_id', 'username display_name')
+      .populate('user_id', 'username')
       .populate('task_id')
       .sort({ date: -1, createdAt: -1 });
 

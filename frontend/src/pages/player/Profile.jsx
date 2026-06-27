@@ -54,8 +54,8 @@ const ChampionsRow = ({ onSelect }) => {
   return (
     <div className="flex gap-3 justify-center flex-wrap">
       {champions.map((champ, idx) => {
-        const name = champ.display_name || champ.displayName || champ.username || champ.name || 'Player'
-        const avatar = champ.avatar_url || champ.avatar || ''
+        const name = champ.username || 'Player'
+        const avatar = champ.avatar_url || ''
         const score = champ.score ?? champ.points ?? 0
         const isTop = idx === 0
         return (
@@ -101,7 +101,7 @@ const ChampionModal = ({ champion, onClose }) => {
       .finally(() => setLoading(false))
   }, [champion?.id])
 
-  const name = champion?.display_name || champion?.displayName || champion?.username || champion?.name || 'Player'
+  const name = champion?.username || 'Player'
 
   return (
     <AnimatePresence>
@@ -121,8 +121,8 @@ const ChampionModal = ({ champion, onClose }) => {
         >
           <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              {(champion?.avatar_url || champion?.avatar) ? (
-                <img src={champion.avatar_url || champion.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+              {champion?.avatar_url ? (
+                <img src={champion.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
                   {name.charAt(0).toUpperCase()}
@@ -185,8 +185,8 @@ const Profile = ({ userDetails }) => {
   const [filter, setFilter] = useState('all')
 
   const user = userDetails || auth.user || {}
-  const displayName = user.display_name || user.displayName || user.username || 'Player'
-  const avatarUrl = user.avatar_url || user.avatar || ''
+  const displayName = user.username || 'Player'
+  const avatarUrl = user.avatar_url || ''
 
   const achievements = userDetails?.achievements || []
   const totalScore = useMemo(() => achievements.reduce((s, a) => s + (a.points || a.score || 0), 0), [achievements])
@@ -224,12 +224,10 @@ const Profile = ({ userDetails }) => {
   }, [achievements])
 
   const maxCategoryPoints = categories.length > 0 ? Math.max(...categories.map(c => c.points)) : 1
-
   const categoryColors = [
     'bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500',
     'bg-rose-500', 'bg-cyan-500', 'bg-pink-500', 'bg-lime-500'
   ]
-
   const uniqueCategories = ['all', ...categories.map(c => c.name)]
   const filtered = filter === 'all' ? achievements : achievements.filter(a => (a.category || a.type || 'General') === filter)
 
@@ -239,13 +237,9 @@ const Profile = ({ userDetails }) => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-5xl mx-auto space-y-6"
     >
-      {/* Profile card with avatar, name, rank, score, coins */}
+      {/* Profile card */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sm:p-8 text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        >
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}>
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover mx-auto ring-4 ring-blue-100 dark:ring-blue-900/50" />
           ) : (
@@ -255,33 +249,21 @@ const Profile = ({ userDetails }) => {
           )}
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }}
-          className="mt-4 text-2xl font-bold text-gray-900 dark:text-white"
-        >
+        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
+          className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
           {displayName}
         </motion.h1>
 
         {rank && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25 }}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25 }}
+            className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full">
             <HiOutlineBadgeCheck className="w-5 h-5 text-yellow-500" />
-            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">Your Rank: #{rank}</span>
+            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">Rank: #{rank}</span>
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="mt-6 flex items-center justify-center gap-8"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+          className="mt-6 flex items-center justify-center gap-8">
           <div className="text-center">
             <p className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
               {totalScore.toLocaleString()}
@@ -294,10 +276,23 @@ const Profile = ({ userDetails }) => {
               <span className="text-3xl sm:text-4xl font-extrabold text-yellow-500">{coins.toLocaleString()}</span>
               <span className="text-2xl">🪙</span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Coins in Pocket</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Coins</p>
           </div>
         </motion.div>
       </div>
+
+      {/* Top 5 Champions — placed above achievements per Task 4 */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <HiOutlineBadgeCheck className="w-5 h-5 text-yellow-500" />
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Top 5 Champions</h2>
+        </div>
+        <ChampionsRow onSelect={setSelectedChampion} />
+      </div>
+
+      {selectedChampion && (
+        <ChampionModal champion={selectedChampion} onClose={() => setSelectedChampion(null)} />
+      )}
 
       {/* Score by Category */}
       {categories.length > 0 && (
@@ -308,13 +303,7 @@ const Profile = ({ userDetails }) => {
           </div>
           <div className="mt-4 space-y-3">
             {categories.map((cat, i) => (
-              <ProgressBar
-                key={cat.name}
-                label={cat.name}
-                value={cat.points}
-                max={maxCategoryPoints}
-                color={categoryColors[i % categoryColors.length]}
-              />
+              <ProgressBar key={cat.name} label={cat.name} value={cat.points} max={maxCategoryPoints} color={categoryColors[i % categoryColors.length]} />
             ))}
           </div>
         </div>
@@ -332,11 +321,8 @@ const Profile = ({ userDetails }) => {
           {uniqueCategories.length > 1 && (
             <div className="flex items-center gap-2">
               <HiOutlineFilter className="w-4 h-4 text-gray-400" />
-              <select
-                value={filter}
-                onChange={e => setFilter(e.target.value)}
-                className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
-              >
+              <select value={filter} onChange={e => setFilter(e.target.value)}
+                className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
                 {uniqueCategories.map(cat => (
                   <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
                 ))}
@@ -353,41 +339,24 @@ const Profile = ({ userDetails }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence>
               {filtered.map((ach, i) => (
-                <motion.div
-                  key={ach.id || i}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: i * 0.03 }}
-                  layout
-                  className="group bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600/40 p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700/50 transition-all"
-                >
+                <motion.div key={ach.id || i} layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: i * 0.03 }}
+                  className="group bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600/40 p-4 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700/50 transition-all">
                   <div className="flex items-start gap-3">
                     <div className="w-9 h-9 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
                       <HiOutlineStar className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                          {ach.title || ach.name || 'Achievement'}
-                        </p>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">
-                          {ach.category || ach.type || 'General'}
-                        </span>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{ach.title || ach.name || 'Achievement'}</p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">{ach.category || ach.type || 'General'}</span>
                       </div>
-                      {ach.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{ach.description}</p>
-                      )}
+                      {ach.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{ach.description}</p>}
                       {(ach.date_earned || ach.dateEarned) && (
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">
-                          {new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}
-                        </p>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">{new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}</p>
                       )}
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="inline-flex items-center gap-0.5 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">
-                        +{ach.points || ach.score || 0}
-                      </span>
+                      <span className="inline-flex items-center gap-0.5 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md">+{ach.points || ach.score || 0}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -396,19 +365,6 @@ const Profile = ({ userDetails }) => {
           </div>
         )}
       </div>
-
-      {/* Top 5 Champions */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <HiOutlineBadgeCheck className="w-5 h-5 text-yellow-500" />
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Top 5 Champions</h2>
-        </div>
-        <ChampionsRow onSelect={setSelectedChampion} />
-      </div>
-
-      {selectedChampion && (
-        <ChampionModal champion={selectedChampion} onClose={() => setSelectedChampion(null)} />
-      )}
     </motion.div>
   )
 }

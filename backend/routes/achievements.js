@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       filter.user_id = user_id;
     }
     const achievements = await Achievement.find(filter)
-      .populate('user_id', 'username display_name')
+      .populate('user_id', 'username')
       .sort({ createdAt: -1 });
     res.json(achievements);
   } catch (err) {
@@ -67,7 +67,7 @@ router.post('/', requireAdmin, async (req, res) => {
     if (points > 0 && userInfo) {
       broadcastAchievement(
         userInfo._id,
-        userInfo.display_name || userInfo.username,
+        userInfo.username,
         userInfo.team_id?.name || null,
         points,
         category
@@ -79,10 +79,10 @@ router.post('/', requireAdmin, async (req, res) => {
 
         await StockEvent.create({
           type: 'achievement',
-          message: `${userInfo.display_name || userInfo.username} earned ${points} points in ${category || 'general'}`,
+          message: `${userInfo.username} earned ${points} points in ${category || 'general'}`,
           data: {
             userId: userInfo._id.toString(),
-            playerName: userInfo.display_name || userInfo.username,
+            playerName: userInfo.username,
             teamName: teamName,
             points,
             category,

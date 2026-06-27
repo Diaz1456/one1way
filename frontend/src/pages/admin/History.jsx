@@ -58,7 +58,7 @@ export default function History() {
           >
             <option value="">All Players</option>
             {players.map(p => (
-              <option key={p.id} value={p.id}>{p.displayName || p.username}</option>
+              <option key={p.id} value={p.id}>{p.username}</option>
             ))}
           </select>
           <div>
@@ -117,7 +117,7 @@ export default function History() {
                     <td className="py-3 text-gray-700 dark:text-gray-300">
                       {h.date ? new Date(h.date).toLocaleDateString() : (h.completed_at ? new Date(h.completed_at).toLocaleDateString() : '-')}
                     </td>
-                    <td className="py-3 text-gray-900 dark:text-white">{h.playerName || h.displayName || h.username || h.player_id || '-'}</td>
+                    <td className="py-3 text-gray-900 dark:text-white">{h.playerName || h.username || h.player_id || '-'}</td>
                     <td className="py-3 text-gray-600 dark:text-gray-400 max-w-md truncate">{h.taskDescription || h.description || h.task || '-'}</td>
                     <td className="py-3">
                       {(h.status === true || h.status === 'completed' || h.checked === true) ? (

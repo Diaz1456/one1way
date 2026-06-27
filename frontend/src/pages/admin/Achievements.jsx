@@ -9,6 +9,7 @@ const initialForm = { user_id: '', title: '', description: '', category: '', poi
 export default function Achievements() {
   const [achievements, setAchievements] = useState([])
   const [players, setPlayers] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState(initialForm)
   const [creating, setCreating] = useState(false)
@@ -19,13 +20,15 @@ export default function Achievements() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const [achRes, playerRes] = await Promise.all([
+      const [achRes, playerRes, catRes] = await Promise.all([
         api.get('/achievements'),
-        api.get('/users')
+        api.get('/users'),
+        api.get('/categories')
       ])
       setAchievements(Array.isArray(achRes.data) ? achRes.data : achRes.data.achievements || [])
       const plist = Array.isArray(playerRes.data) ? playerRes.data : playerRes.data.users || playerRes.data.players || []
       setPlayers(plist)
+      setCategories(Array.isArray(catRes.data) ? catRes.data : [])
     } catch {
       toast.error('Failed to load data')
     } finally {
@@ -105,27 +108,25 @@ export default function Achievements() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Add Achievement</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-          <select
-            value={form.user_id}
-            onChange={e => setForm({ ...form, user_id: e.target.value })}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          >
+          <select value={form.user_id} onChange={e => setForm({ ...form, user_id: e.target.value })}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
             <option value="">Select Player *</option>
             {players.map(p => (
-              <option key={p.id} value={p.id}>{p.displayName || p.username}</option>
+              <option key={p.id} value={p.id}>{p.username}</option>
             ))}
           </select>
-          <input placeholder="Title *" value={form.title}
-            onChange={e => setForm({ ...form, title: e.target.value })}
+          <input placeholder="Title *" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
-          <input placeholder="Description" value={form.description}
-            onChange={e => setForm({ ...form, description: e.target.value })}
+          <input placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
-          <input placeholder="Category" value={form.category}
-            onChange={e => setForm({ ...form, category: e.target.value })}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
-          <input type="number" placeholder="Points" value={form.points}
-            onChange={e => setForm({ ...form, points: Number(e.target.value) })}
+          <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <option value="">No Category</option>
+            {categories.map(c => (
+              <option key={c.id || c._id} value={c.name}>{c.name}</option>
+            ))}
+          </select>
+          <input type="number" placeholder="Points" value={form.points} onChange={e => setForm({ ...form, points: Number(e.target.value) })}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
           <button type="submit" disabled={creating}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors">
@@ -151,17 +152,12 @@ export default function Achievements() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">All Achievements ({filtered.length})</h2>
-          <input
-            placeholder="Search achievements..." value={filter}
-            onChange={e => setFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none max-w-xs text-sm"
-          />
+          <input placeholder="Search achievements..." value={filter} onChange={e => setFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none max-w-xs text-sm" />
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500" />
-          </div>
+          <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500" /></div>
         ) : filtered.length === 0 ? (
           <p className="text-center text-gray-400 dark:text-gray-500 py-8">No achievements found</p>
         ) : (
@@ -183,7 +179,7 @@ export default function Achievements() {
                   <tr key={ach.id} className="border-b border-gray-100 dark:border-gray-700/50">
                     {editingId === ach.id ? (
                       <>
-                        <td className="py-3 text-gray-900 dark:text-white">{playerMap[ach.userId]?.displayName || playerMap[ach.userId]?.username || ach.userId}</td>
+                        <td className="py-3 text-gray-900 dark:text-white">{playerMap[ach.userId]?.username || ach.userId}</td>
                         <td className="py-3">
                           <input value={editForm.title} onChange={e => setEditForm({ ...editForm, title: e.target.value })}
                             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
@@ -193,8 +189,13 @@ export default function Achievements() {
                             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
                         </td>
                         <td className="py-3">
-                          <input value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })}
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+                          <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })}
+                            className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                            <option value="">No Category</option>
+                            {categories.map(c => (
+                              <option key={c.id || c._id} value={c.name}>{c.name}</option>
+                            ))}
+                          </select>
                         </td>
                         <td className="py-3">
                           <input type="number" value={editForm.points} onChange={e => setEditForm({ ...editForm, points: Number(e.target.value) })}
@@ -213,7 +214,7 @@ export default function Achievements() {
                       </>
                     ) : (
                       <>
-                        <td className="py-3 text-gray-900 dark:text-white">{playerMap[ach.userId]?.displayName || playerMap[ach.userId]?.username || ach.userId}</td>
+                        <td className="py-3 text-gray-900 dark:text-white">{playerMap[ach.userId]?.username || ach.userId}</td>
                         <td className="py-3 font-medium text-gray-900 dark:text-white">{ach.title}</td>
                         <td className="py-3 text-gray-500 dark:text-gray-400 max-w-xs truncate">{ach.description || '-'}</td>
                         <td className="py-3">

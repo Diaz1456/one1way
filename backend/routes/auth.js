@@ -43,7 +43,6 @@ router.post('/login', async (req, res) => {
         id: user._id,
         username: user.username,
         role: user.role,
-        display_name: user.display_name,
         avatar_url: user.avatar_url,
       },
     });
@@ -54,7 +53,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  const { username, password, display_name } = req.body;
+  const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
@@ -80,14 +79,12 @@ router.post('/register', async (req, res) => {
       username: username.toLowerCase(),
       password_hash: hash,
       role: 'player',
-      display_name: display_name || username,
     });
 
     res.status(201).json({
       id: user._id,
       username: user.username,
       role: user.role,
-      display_name: user.display_name,
       avatar_url: user.avatar_url,
       created_at: user.createdAt,
     });
@@ -134,7 +131,6 @@ router.post('/refresh', async (req, res) => {
         id: user._id,
         username: user.username,
         role: user.role,
-        display_name: user.display_name,
         avatar_url: user.avatar_url,
       },
     });

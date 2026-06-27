@@ -50,10 +50,7 @@ router.get('/', async (req, res) => {
     const filter = {};
 
     if (search) {
-      filter.$or = [
-        { username: { $regex: search, $options: 'i' } },
-        { display_name: { $regex: search, $options: 'i' } },
-      ];
+      filter.username = { $regex: search, $options: 'i' };
     }
 
     if (req.user.role !== 'admin') {
@@ -202,7 +199,7 @@ router.get('/:id/details', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { password, display_name, username, role, team_id, avatar_url } = req.body;
+    const { password, username, role, team_id, avatar_url } = req.body;
 
     if (req.user.role !== 'admin' && req.user.id !== id) {
       return res.status(403).json({ error: 'You can only update your own profile' });
@@ -216,10 +213,6 @@ router.put('/:id', async (req, res) => {
         return res.status(403).json({ error: 'Use /auth/change-password to change your own password' });
       }
       update.password_hash = await bcrypt.hash(password, 10);
-    }
-
-    if (display_name && (isAdmin || req.user.id === id)) {
-      update.display_name = display_name;
     }
 
     if (isAdmin) {

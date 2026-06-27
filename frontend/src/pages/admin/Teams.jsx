@@ -155,12 +155,12 @@ export default function Teams() {
                       const uid = m.id || m.userId || m
                       const pl = players.find(p => p.id === uid)
                       return (
-                        <div key={uid} className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-gray-800 overflow-hidden" title={pl?.displayName || pl?.username || uid}>
+                        <div key={uid} className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-gray-800 overflow-hidden" title={pl?.username || uid}>
                           {pl?.avatarUrl ? (
                             <img src={pl.avatarUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
-                              {(pl?.displayName || pl?.username || '?')[0]?.toUpperCase() || '?'}
+                              {(pl?.username || '?')[0]?.toUpperCase() || '?'}
                             </div>
                           )}
                         </div>
@@ -229,13 +229,12 @@ export default function Teams() {
                         <img src={player.avatarUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
-                          {(player.displayName || player.username || '?')[0]?.toUpperCase() || '?'}
+                          {(player.username || '?')[0]?.toUpperCase() || '?'}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{player.displayName || player.username}</p>
-                      {player.displayName && <p className="text-xs text-gray-400 truncate">@{player.username}</p>}
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{player.username}</p>
                     </div>
                   </div>
                 )

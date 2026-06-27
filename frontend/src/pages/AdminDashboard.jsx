@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
   FiUsers, FiAward, FiStar, FiClock, FiMessageSquare, FiUsers as FiGroup, FiClock as FiTimer,
-  FiMenu, FiX, FiLogOut, FiBell, FiSun, FiMoon,   FiVolume2, FiVolumeX, FiSettings
+  FiMenu, FiX, FiLogOut, FiBell, FiSun, FiMoon,   FiVolume2, FiVolumeX, FiSettings, FiTag
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
 import Accounts from './admin/Accounts'
 import Leaderboard from './admin/Leaderboard'
 import Achievements from './admin/Achievements'
+import Categories from './admin/Categories'
 import History from './admin/History'
 import Feedback from './admin/Feedback'
 import Teams from './admin/Teams'
@@ -21,6 +22,7 @@ const navItems = [
   { path: 'accounts', label: 'Accounts', icon: FiUsers },
   { path: 'leaderboard', label: 'Leaderboard', icon: FiAward },
   { path: 'achievements', label: 'Achievements', icon: FiStar },
+  { path: 'categories', label: 'Categories', icon: FiTag },
   { path: 'history', label: 'History', icon: FiClock },
   { path: 'feedback', label: 'Feedback', icon: FiMessageSquare },
   { path: 'teams', label: 'Teams', icon: FiGroup },
@@ -130,7 +132,7 @@ export default function AdminDashboard() {
           <DigitalClock />
           <CountdownDisplay />
           <div className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
-            <span className="font-medium text-gray-900 dark:text-white">{user.displayName || user.username || 'Admin'}</span>
+            <span className="font-medium text-gray-900 dark:text-white">{user.username || 'Admin'}</span>
             <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 capitalize">{user.role || 'admin'}</span>
           </div>
           <button onClick={toggleNightMode} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Toggle Night Mode">
@@ -179,7 +181,7 @@ export default function AdminDashboard() {
               <Route index element={
                 <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
                   <div className="text-center py-20">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.displayName || user.username || 'Admin'}!</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.username || 'Admin'}!</h2>
                     <p className="text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
                   </div>
                 </motion.div>
@@ -187,6 +189,7 @@ export default function AdminDashboard() {
               <Route path="accounts" element={<motion.div key="accounts" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Accounts /></motion.div>} />
               <Route path="leaderboard" element={<motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Leaderboard /></motion.div>} />
               <Route path="achievements" element={<motion.div key="achievements" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Achievements /></motion.div>} />
+              <Route path="categories" element={<motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Categories /></motion.div>} />
               <Route path="history" element={<motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><History /></motion.div>} />
               <Route path="feedback" element={<motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Feedback /></motion.div>} />
               <Route path="teams" element={<motion.div key="teams" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Teams /></motion.div>} />
@@ -215,7 +218,7 @@ export default function AdminDashboard() {
                       {presenceUsers.map((u, i) => (
                         <div key={u.id || i} className="flex items-center gap-2 text-sm">
                           <span className="w-2 h-2 rounded-full bg-green-400" />
-                          <span className="text-gray-700 dark:text-gray-300">{u.displayName || u.username}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{u.username}</span>
                         </div>
                       ))}
                     </div>
