@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'react-hot-toast'
 import {
-  HiOutlineUser, HiOutlineStar, HiOutlineClipboardCheck,
+  HiOutlineUser, HiOutlineClipboardCheck,
   HiOutlineUsers, HiOutlineChatAlt2, HiOutlineCog,
   HiOutlineLogout, HiOutlineVolumeUp, HiOutlineVolumeOff
 } from 'react-icons/hi'
@@ -17,7 +17,7 @@ import Profile from './player/Profile'
 import DailyTask from './player/DailyTask'
 import TeamView from './player/TeamView'
 import FeedbackForm from './player/FeedbackForm'
-import HallOfFame from './player/HallOfFame'
+import HallOfFameModal from '../components/HallOfFameModal'
 import Settings from './player/Settings'
 
 const tabs = [
@@ -341,13 +341,17 @@ const OnlineCount = () => {
   )
 }
 
-const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle, mobileOpen, onMobileClose }) => {
+const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle, mobileOpen, onMobileClose, onOpenHallOfFame }) => {
   const navigate = useNavigate()
 
   const handleTab = (tab) => {
     playClick()
     onTabChange(tab.id)
-    navigate(tab.path)
+    if (tab.id === 'hall-of-fame') {
+      onOpenHallOfFame()
+    } else {
+      navigate(tab.path)
+    }
     onMobileClose()
   }
 
@@ -469,6 +473,7 @@ const PlayerDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [hallOfFameOpen, setHallOfFameOpen] = useState(false)
 
   const activeTab = tabs.find(t => location.pathname.startsWith(t.path))?.id || 'profile'
 
@@ -575,6 +580,7 @@ const PlayerDashboard = () => {
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
           mobileOpen={mobileSidebarOpen}
           onMobileClose={() => setMobileSidebarOpen(false)}
+          onOpenHallOfFame={() => setHallOfFameOpen(true)}
         />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -590,7 +596,6 @@ const PlayerDashboard = () => {
                 <Route path="profile" element={<Profile userDetails={userDetails} />} />
                 <Route path="daily-task" element={<DailyTask />} />
                 <Route path="team" element={<TeamView />} />
-                <Route path="hall-of-fame" element={<HallOfFame />} />
                 <Route path="feedback" element={<FeedbackForm />} />
                 <Route path="settings" element={<Settings userDetails={userDetails} />} />
               </Routes>
@@ -607,7 +612,7 @@ const PlayerDashboard = () => {
           return (
             <motion.button
               key={tab.id}
-              onClick={() => { playClick(); navigate(tab.path) }}
+              onClick={() => { playClick(); tab.id === 'hall-of-fame' ? setHallOfFameOpen(true) : navigate(tab.path) }}
               whileTap={{ scale: 0.9 }}
               className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[44px] min-h-[44px] ${
                 isActive
@@ -630,6 +635,7 @@ const PlayerDashboard = () => {
         </motion.button>
       </nav>
 
+      <HallOfFameModal open={hallOfFameOpen} onClose={() => setHallOfFameOpen(false)} />
       <StockTicker />
       <AchievementPopup />
       <OvertakeNotification />

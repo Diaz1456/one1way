@@ -61,7 +61,7 @@ const ChampionsRow = ({ onSelect }) => {
     return (
       <div className="flex gap-3 justify-center py-4">
         {[1,2,3,4,5].map(i => (
-          <div key={i} className="w-16 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
+          <div key={i} className="w-14 h-16 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
         ))}
       </div>
     )
@@ -74,14 +74,16 @@ const ChampionsRow = ({ onSelect }) => {
   const maxScore = Math.max(...champions.map(c => c.total_points ?? c.score ?? 0), 1)
 
   return (
-    <div className="space-y-4">
-      <motion.div variants={stagger} initial="initial" animate="animate" className="flex gap-2 sm:gap-3 justify-center flex-wrap items-end">
-        {champions.map((champ, idx) => {
+    <div className="space-y-5">
+      <motion.div variants={stagger} initial="initial" animate="animate" className="flex items-end justify-center gap-2 sm:gap-4">
+        {champions.slice(0, 3).map((champ, idx) => {
           const name = champ.username || 'Player'
           const avatar = champ.avatar_url || ''
           const score = champ.total_points ?? champ.score ?? champ.points ?? 0
-          const height = Math.max((score / maxScore) * 100, 20)
-          const isPodium = idx < 3
+          const barH = Math.max((score / maxScore) * 120, 48)
+          const order = [1, 0, 2]
+          const visualIdx = order[idx]
+          const barColor = ['from-yellow-400 to-amber-500', 'from-gray-300 to-slate-400', 'from-amber-500 to-orange-500'][visualIdx]
           return (
             <motion.button
               key={champ.id || idx}
@@ -89,41 +91,66 @@ const ChampionsRow = ({ onSelect }) => {
               whileHover={{ scale: 1.05, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelect(champ)}
-              className="flex flex-col items-center gap-1.5 group"
+              className="flex flex-col items-center gap-2 group flex-1 min-w-0 max-w-[130px]"
             >
               <motion.div
-                animate={{ height }}
-                transition={{ type: 'spring', stiffness: 100, damping: 20, delay: idx * 0.1 }}
-                className={`w-14 sm:w-16 rounded-t-xl flex flex-col items-center justify-end pb-2 pt-1 transition-all
-                  ${isPodium
-                    ? `bg-gradient-to-t ${rankGradients[idx]} shadow-lg`
-                    : 'bg-gradient-to-t from-blue-400 to-blue-300 dark:from-blue-700 dark:to-blue-600 shadow-md'
-                  }`}
+                animate={{ height: barH }}
+                transition={{ type: 'spring', stiffness: 120, damping: 22, delay: idx * 0.12 }}
+                className={`w-full rounded-xl flex flex-col items-center justify-end pb-1.5 pt-1 shadow-lg bg-gradient-to-t ${barColor}`}
               >
-                <span className="text-lg sm:text-xl">{isPodium ? rankIcons[idx] : `#${idx + 1}`}</span>
-                <span className="text-[10px] font-bold text-white/90 tabular-nums">{score.toLocaleString()}</span>
+                <span className="text-lg sm:text-xl leading-none">{rankIcons[visualIdx]}</span>
+                <span className="text-[9px] font-bold text-white/90 tabular-nums mt-0.5">{score.toLocaleString()}</span>
               </motion.div>
-              <div className="flex flex-col items-center gap-0.5 px-1">
+              <div className="flex flex-col items-center gap-1 w-full px-0.5">
                 {avatar ? (
-                  <img src={avatar} alt="" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-white dark:ring-gray-600" />
+                  <img src={avatar} alt="" className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover ring-2 ring-white dark:ring-gray-600 shrink-0" />
                 ) : (
-                  <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold shadow-sm ${
-                    isPodium ? `bg-gradient-to-br ${rankGradients[idx]}` : 'bg-gradient-to-br from-blue-400 to-purple-500'
-                  }`}>
+                  <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold shadow-sm shrink-0 bg-gradient-to-br ${barColor}`}>
                     {name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-200 max-w-[56px] truncate leading-tight">{name}</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-gray-800 dark:text-gray-200 w-full text-center truncate leading-tight">{name}</span>
               </div>
             </motion.button>
           )
         })}
       </motion.div>
+
+      {champions.length > 3 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="flex items-center justify-center gap-2 sm:gap-4"
+        >
+          {champions.slice(3).map((champ, idx) => {
+            const name = champ.username || 'Player'
+            const score = champ.total_points ?? champ.score ?? champ.points ?? 0
+            const rank = idx + 4
+            return (
+              <motion.button
+                key={champ.id || idx}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onSelect(champ)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all min-w-0 flex-1 max-w-[180px]"
+              >
+                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 shrink-0 w-4 text-center">#{rank}</span>
+                <div className="flex-1 min-w-0 truncate">
+                  <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate block">{name}</span>
+                </div>
+                <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400 shrink-0 tabular-nums">{score.toLocaleString()}</span>
+              </motion.button>
+            )
+          })}
+        </motion.div>
+      )}
+
       {champions[0] && (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.5 }}
           className="text-center text-[10px] text-gray-400 dark:text-gray-500"
         >
           👑 <span className="font-semibold text-yellow-600 dark:text-yellow-400">{champions[0].username}</span> leads with{' '}
