@@ -199,7 +199,7 @@ export default function Login() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -40, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-              className="w-80 space-y-4"
+              className="w-full max-w-sm px-4 sm:px-0 space-y-4"
             >
               <div>
                 <input

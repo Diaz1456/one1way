@@ -1,28 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { HiOutlineUsers, HiOutlineUserGroup, HiOutlineBadgeCheck, HiOutlineUser } from 'react-icons/hi'
+import { HiOutlineUsers, HiOutlineUserGroup, HiOutlineBadgeCheck, HiOutlineUser, HiOutlineCash } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
 
 const TeamView = () => {
   const { auth } = useStore()
+  const storeTeams = useStore((s) => s.teams)
   const [team, setTeam] = useState(null)
+  const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   const userId = auth.user?.id
 
+  const findMyTeam = useCallback((teams) => {
+    return teams.find(t =>
+      (t.member_ids || []).includes(userId) ||
+      t.leaderId === userId ||
+      t.leader?.id === userId
+    )
+  }, [userId])
+
   useEffect(() => {
     if (!userId) { setLoading(false); return }
+
+    const fromStore = findMyTeam(storeTeams)
+    if (fromStore) {
+      setTeam(fromStore)
+      setLoading(false)
+      return
+    }
+
     api.get('/teams')
       .then(({ data }) => {
         const teams = Array.isArray(data) ? data : data.teams || data.results || []
-        const myTeam = teams.find(t =>
-          t.members?.some(m => m.id === userId || m.userId === userId) ||
-          t.leaderId === userId ||
-          t.leader?.id === userId
-        )
+        const myTeam = findMyTeam(teams)
         setTeam(myTeam || null)
       })
       .catch(err => {
@@ -31,7 +45,20 @@ const TeamView = () => {
         toast.error(msg)
       })
       .finally(() => setLoading(false))
-  }, [userId])
+  }, [userId, findMyTeam])
+
+  useEffect(() => {
+    if (!storeTeams.length) return
+    const myTeam = findMyTeam(storeTeams)
+    if (myTeam) setTeam(myTeam)
+  }, [storeTeams, findMyTeam])
+
+  useEffect(() => {
+    if (!team?.id) { setMembers([]); return }
+    api.get(`/teams/${team.id}/rankings`)
+      .then(({ data }) => setMembers(Array.isArray(data.members) ? data.members : []))
+      .catch(() => setMembers([]))
+  }, [team?.id])
 
   const container = {
     hidden: { opacity: 0 },
@@ -80,7 +107,7 @@ const TeamView = () => {
             👥
           </motion.div>
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">No Team</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs mx-auto">
+          <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs w-full px-4 mx-auto">
             You are not part of any team yet. Join or create a team to start collaborating!
           </p>
           <motion.div
@@ -99,8 +126,9 @@ const TeamView = () => {
 
   const teamName = team.name || team.teamName || 'My Team'
   const teamColor = team.color || '#3B82F6'
-  const members = team.members || team.players || team.users || []
-  const teamScore = team.totalScore ?? team.score ?? team.points ?? 0
+  const teamScore = team.score ?? team.total_points ?? 0
+  const teamCash = team.cash ?? 0
+  const teamRank = team.rank ?? '-'
 
   return (
     <motion.div
@@ -125,16 +153,37 @@ const TeamView = () => {
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{teamName}</h2>
-            <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-500 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <HiOutlineUsers className="w-4 h-4" />
-                {members.length} {members.length === 1 ? 'member' : 'members'}
+                {team.member_count || 0} {team.member_count === 1 ? 'member' : 'members'}
               </span>
               <span className="flex items-center gap-1">
                 <HiOutlineBadgeCheck className="w-4 h-4 text-yellow-500" />
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{teamScore.toLocaleString()}</span> pts
+                <span className="font-semibold text-gray-700 dark:text-gray-300">#{teamRank}</span>
+              </span>
+              <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                <HiOutlineCash className="w-4 h-4" />
+                ${teamCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl text-center">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{team.member_count || 0}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Members</p>
+          </div>
+          <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl text-center">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{teamScore.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total Score</p>
+          </div>
+          <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl text-center col-span-2 sm:col-span-1">
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              ${teamCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Cash</p>
           </div>
         </div>
       </motion.div>
@@ -155,32 +204,27 @@ const TeamView = () => {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {members.map((member, i) => {
-              const name = member.username || member.name || 'Player'
-              const avatar = member.avatar || ''
+              const name = member.username || 'Player'
+              const avatar = member.avatar_url || ''
               return (
                 <motion.div
-                  key={member.id || member.userId || i}
+                  key={member._id || i}
                   variants={itemAnim}
                   className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   {avatar ? (
                     <img src={avatar} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white dark:ring-gray-600" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white">
-                      <HiOutlineUser className="w-5 h-5" />
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                      {name.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{name}</p>
-                    {member.role && (
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{member.role}</p>
-                    )}
                   </div>
-                  {(member.score ?? member.points) != null && (
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                      {(member.score || member.points || 0).toLocaleString()}
-                    </span>
-                  )}
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                    {member.total_points || 0} pts
+                  </span>
                 </motion.div>
               )
             })}

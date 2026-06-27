@@ -339,27 +339,25 @@ const OnlineCount = () => {
   )
 }
 
-const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle }) => {
+const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle, mobileOpen, onMobileClose }) => {
   const navigate = useNavigate()
 
   const handleTab = (tab) => {
     playClick()
     onTabChange(tab.id)
     navigate(tab.path)
+    onMobileClose()
   }
 
-  return (
-    <motion.aside
-      initial={false}
-      animate={{ width: collapsed ? 64 : 220 }}
-      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shrink-0 overflow-hidden shadow-sm z-10"
-    >
+  const sidebarContent = (
+    <>
       <div className="p-3 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
         {!collapsed && <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Sections</span>}
         <motion.button
           onClick={() => { playClick(); onToggle() }}
           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all"
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all min-w-[36px] min-h-[36px]"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={collapsed ? 'M13 5l7 7-7 7M5 5l7 7-7 7' : 'M11 19l-7-7 7-7m8 14l-7-7 7-7'} />
@@ -376,7 +374,7 @@ const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle }) => {
               onClick={() => handleTab(tab)}
               whileHover={{ x: 2 }}
               whileTap={{ scale: 0.98 }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px]
                 ${isActive
                   ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/50'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -389,7 +387,75 @@ const Sidebar = ({ activeTab, onTabChange, collapsed, onToggle }) => {
           )
         })}
       </nav>
-    </motion.aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{ width: collapsed ? 64 : 220 }}
+        className="hidden md:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col shrink-0 overflow-hidden shadow-sm z-10"
+      >
+        {sidebarContent}
+      </motion.aside>
+
+      {/* Mobile overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={onMobileClose}
+            />
+            <motion.aside
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-50 md:hidden shadow-xl"
+            >
+              <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Sections</span>
+                <motion.button onClick={onMobileClose}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 min-w-[36px] min-h-[36px]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+              <nav className="flex-1 py-3 space-y-1 px-2">
+                {tabs.map(tab => {
+                  const Icon = tab.icon
+                  const isActive = activeTab === tab.id
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => handleTab(tab)}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px]
+                        ${isActive
+                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/50'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        }`}
+                    >
+                      <Icon className="w-5 h-5 shrink-0" />
+                      <span>{tab.label}</span>
+                    </motion.button>
+                  )
+                })}
+              </nav>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
@@ -400,6 +466,7 @@ const PlayerDashboard = () => {
   const [userDetails, setUserDetails] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   const activeTab = tabs.find(t => location.pathname.startsWith(t.path))?.id || 'profile'
 
@@ -432,9 +499,19 @@ const PlayerDashboard = () => {
         duration: 6000
       }} />
 
-      <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 shadow-sm">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+      <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 sm:px-6 shrink-0 z-30 shadow-sm">
+        <div className="flex items-center gap-3">
+          <motion.button
+            onClick={() => setMobileSidebarOpen(true)}
+            whileTap={{ scale: 0.9 }}
+            className="md:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            title="Open menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </motion.button>
+          <h1 className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             ONE WAY
           </h1>
           <div className="hidden md:flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
@@ -494,6 +571,8 @@ const PlayerDashboard = () => {
           onTabChange={() => {}}
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
         />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -504,13 +583,6 @@ const PlayerDashboard = () => {
           ) : (
             <div className="space-y-6">
               <CountdownWidget />
-              <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-900/10 dark:via-amber-900/10 dark:to-orange-900/10 rounded-3xl p-4 sm:p-6 border border-yellow-100 dark:border-yellow-900/20 shadow-lg shadow-yellow-500/5">
-                <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                  <span className="text-xl">🏆</span>
-                  Team Rankings &amp; Cash
-                </h2>
-                <TeamRankings />
-              </div>
               <Routes>
                 <Route index element={<Profile userDetails={userDetails} />} />
                 <Route path="profile" element={<Profile userDetails={userDetails} />} />
@@ -523,6 +595,37 @@ const PlayerDashboard = () => {
           )}
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden flex items-center justify-around bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-1 py-1 z-30 shrink-0">
+        {tabs.map(tab => {
+          const Icon = tab.icon
+          const isActive = activeTab === tab.id
+          return (
+            <motion.button
+              key={tab.id}
+              onClick={() => { playClick(); navigate(tab.path) }}
+              whileTap={{ scale: 0.9 }}
+              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[44px] min-h-[44px] ${
+                isActive
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
+            </motion.button>
+          )
+        })}
+        <motion.button
+          onClick={handleLogout}
+          whileTap={{ scale: 0.9 }}
+          className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all min-w-[44px] min-h-[44px] text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400"
+        >
+          <HiOutlineLogout className="w-5 h-5" />
+          <span className="text-[10px] font-medium leading-tight">Logout</span>
+        </motion.button>
+      </nav>
 
       <StockTicker />
       <AchievementPopup />

@@ -131,7 +131,7 @@ export default function AdminDashboard() {
         <div className="flex items-center gap-3">
           <motion.button onClick={() => setSidebarOpen(o => !o)}
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all">
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
             <FiMenu size={20} />
           </motion.button>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">One Way</h1>
@@ -171,17 +171,19 @@ export default function AdminDashboard() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
+        {/* Desktop sidebar */}
         <motion.aside
           animate={{ width: sidebarOpen ? 256 : 0 }}
           transition={{ duration: 0.25, ease: 'easeInOut' }}
-          className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shrink-0 overflow-hidden shadow-sm z-10">
+          className="hidden md:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col shrink-0 overflow-hidden shadow-sm z-10">
           <nav className="flex-1 py-4 overflow-y-auto">
             {navItems.map(({ path, label, icon: Icon }) => (
               <NavLink
                 key={path}
                 to={path}
+                onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 mx-2 px-4 py-3 text-sm font-medium rounded-xl transition-all ${
+                  `flex items-center gap-3 mx-2 px-4 py-3 text-sm font-medium rounded-xl transition-all min-h-[44px] ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-100 dark:border-blue-800/50'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -195,23 +197,65 @@ export default function AdminDashboard() {
           </nav>
         </motion.aside>
 
-        <main className="flex-1 overflow-y-auto p-6">
+        {/* Mobile overlay */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                onClick={() => setSidebarOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="fixed left-0 top-16 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-50 md:hidden shadow-xl"
+              >
+                <nav className="flex-1 py-4 overflow-y-auto">
+                  {navItems.map(({ path, label, icon: Icon }) => (
+                    <NavLink
+                      key={path}
+                      to={path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 mx-2 px-4 py-3 text-sm font-medium rounded-xl transition-all min-h-[44px] ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-100 dark:border-blue-800/50'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      <span>{label}</span>
+                    </NavLink>
+                  ))}
+                </nav>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
           <AnimatePresence mode="wait">
             <Routes>
               <Route index element={
                 <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                  <div className="space-y-8">
-                    <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-900/10 dark:via-amber-900/10 dark:to-orange-900/10 rounded-3xl p-6 sm:p-8 border border-yellow-100 dark:border-yellow-900/20 shadow-lg shadow-yellow-500/5">
-                      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
-                        <span className="text-2xl">🏆</span>
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-900/10 dark:via-amber-900/10 dark:to-orange-900/10 rounded-3xl p-4 sm:p-8 border border-yellow-100 dark:border-yellow-900/20 shadow-lg shadow-yellow-500/5">
+                      <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 sm:mb-6 flex items-center gap-2">
+                        <span className="text-xl sm:text-2xl">🏆</span>
                         Team Rankings &amp; Cash
                       </h2>
                       <TeamRankings />
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="text-center py-8">
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.username || 'Admin'}!</h2>
-                        <p className="text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="text-center py-6 sm:py-8">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Welcome, {user.username || 'Admin'}!</h2>
+                        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
                       </div>
                       <RecentLogins />
                     </div>
@@ -239,24 +283,25 @@ export default function AdminDashboard() {
               animate={{ width: 320, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-hidden shrink-0"
+              className="hidden md:flex bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-hidden shrink-0"
             >
               <div className="w-80 p-4 space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Online Players</h3>
-                  {presenceUsers.length === 0 ? (
-                    <p className="text-sm text-gray-400 dark:text-gray-500">No players online</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {presenceUsers.map((u, i) => (
-                        <div key={u.id || i} className="flex items-center gap-2 text-sm">
-                          <span className="w-2 h-2 rounded-full bg-green-400" />
-                          <span className="text-gray-700 dark:text-gray-300">{u.username}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Online Players</h3>
+                  <button onClick={() => setRightPanelOpen(false)} className="md:hidden p-1 text-gray-400 hover:text-gray-600">&times;</button>
                 </div>
+                {presenceUsers.length === 0 ? (
+                  <p className="text-sm text-gray-400 dark:text-gray-500">No players online</p>
+                ) : (
+                  <div className="space-y-2">
+                    {presenceUsers.map((u, i) => (
+                      <div key={u.id || i} className="flex items-center gap-2 text-sm">
+                        <span className="w-2 h-2 rounded-full bg-green-400" />
+                        <span className="text-gray-700 dark:text-gray-300">{u.username}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Recent Feedback</h3>
                   {feedbackList.length === 0 ? (

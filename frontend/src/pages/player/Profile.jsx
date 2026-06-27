@@ -22,7 +22,7 @@ const ProgressBar = ({ value, max, color = 'bg-blue-500', label, delay = 0 }) =>
   return (
     <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay }}
       className="flex items-center gap-3 group">
-      {label && <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-24 shrink-0 truncate">{label}</span>}
+      {label && <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-16 sm:w-20 lg:w-24 shrink-0 truncate">{label}</span>}
       <div className="flex-1 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
@@ -94,7 +94,7 @@ const ChampionsRow = ({ onSelect }) => {
                 {name.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-200 max-w-[64px] truncate">{name}</span>
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-200 max-w-[48px] sm:max-w-[64px] lg:max-w-[80px] truncate">{name}</span>
             <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{score.toLocaleString()}</span>
             {isTop && <HiOutlineBadgeCheck className="w-4 h-4 text-yellow-500" />}
           </motion.button>

@@ -196,8 +196,8 @@ export default function Achievements() {
                 <motion.div key={aid} variants={fadeSlide} layout
                   className="bg-gray-50 dark:bg-gray-700/20 rounded-xl border border-gray-100 dark:border-gray-700/50 p-4 hover:shadow-md transition-all">
                   {isEditing ? (
-                    <div className="flex flex-wrap gap-3 items-end">
-                      <div className="flex-1 min-w-[120px]">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-end">
+                      <div className="flex-1 w-full sm:w-auto min-w-[80px] sm:min-w-[120px]">
                         <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
                         <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none">
@@ -205,7 +205,7 @@ export default function Achievements() {
                           {categories.map(c => <option key={c.id || c._id} value={c.name}>{c.name}</option>)}
                         </select>
                       </div>
-                      <div className="w-20">
+                      <div className="w-full sm:w-20">
                         <label className="block text-xs font-medium text-gray-500 mb-1">Points</label>
                         <input type="number" step="any" value={editForm.points} onChange={e => setEditForm({ ...editForm, points: e.target.value === '' ? '' : Number(e.target.value) })}
                           className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none" />

@@ -165,7 +165,7 @@ export default function TeamRankings({ compact = false }) {
   return (
     <>
       {compact ? (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {sorted.map((team) => (
             <TeamCardMini key={team.id} team={team} onClick={() => setSelectedTeam(team)} />
           ))}
@@ -199,7 +199,7 @@ export default function TeamRankings({ compact = false }) {
                   <motion.div
                     whileHover={{ y: -4 }}
                     onClick={() => setSelectedTeam(team)}
-                    className={`relative w-full min-w-[120px] sm:min-w-[160px] rounded-2xl p-4 sm:p-5 cursor-pointer
+                    className={`relative w-full min-w-[80px] sm:min-w-[120px] lg:min-w-[160px] rounded-2xl p-3 sm:p-5 cursor-pointer
                       bg-gradient-to-b ${cfg.gradient}
                       shadow-xl ${cfg.glow}
                       ${isFirst ? 'ring-2 ring-yellow-300 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900' : ''}

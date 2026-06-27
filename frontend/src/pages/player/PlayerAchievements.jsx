@@ -12,7 +12,7 @@ const ProgressBar = ({ value, max, color = 'bg-blue-500', label }) => {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
   return (
     <div className="flex items-center gap-3">
-      {label && <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-24 shrink-0 truncate">{label}</span>}
+      {label && <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-16 sm:w-20 lg:w-24 shrink-0 truncate">{label}</span>}
       <div className="flex-1 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
@@ -21,7 +21,7 @@ const ProgressBar = ({ value, max, color = 'bg-blue-500', label }) => {
           className={`h-full rounded-full ${color}`}
         />
       </div>
-      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-16 text-right shrink-0">
+      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-12 sm:w-16 text-right shrink-0">
         {Number.isInteger(value) ? value.toLocaleString() : value.toFixed(1)}
       </span>
     </div>

@@ -118,7 +118,7 @@ export default function History() {
                       {h.date ? new Date(h.date).toLocaleDateString() : (h.completed_at ? new Date(h.completed_at).toLocaleDateString() : '-')}
                     </td>
                     <td className="py-3 text-gray-900 dark:text-white">{h.user_id?.username || h.playerName || h.username || h.player_id || '-'}</td>
-                    <td className="py-3 text-gray-600 dark:text-gray-400 max-w-md truncate">{h.taskDescription || h.description || h.task || '-'}</td>
+                    <td className="py-3 text-gray-600 dark:text-gray-400 max-w-[160px] sm:max-w-md lg:truncate">{h.taskDescription || h.description || h.task || '-'}</td>
                     <td className="py-3">
                       {(h.status === true || h.status === 'completed' || h.checked === true) ? (
                         <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">

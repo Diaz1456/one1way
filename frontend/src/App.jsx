@@ -39,7 +39,7 @@ const AuthProvider = ({ children }) => {
     }
     init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [auth.accessToken])
 
   useEffect(() => {
     if (!auth.accessToken) {

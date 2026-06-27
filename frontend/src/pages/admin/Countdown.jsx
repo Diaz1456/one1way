@@ -138,7 +138,7 @@ export default function Countdown() {
             key={remaining}
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
-            className={`text-8xl sm:text-9xl font-mono font-black tracking-wider tabular-nums ${
+            className={`text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-mono font-black tracking-wider tabular-nums ${
               isRunning && remaining <= 10
                 ? 'text-red-500 animate-blink'
                 : isRunning

@@ -141,7 +141,7 @@ export default function Teams() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Create Team</h2>
         <form onSubmit={handleCreateTeam} className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-[140px] sm:min-w-[200px]">
             <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Team Name</label>
             <input placeholder="Team name" value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
@@ -184,8 +184,8 @@ export default function Teams() {
                 onClick={() => openTeam(team)}
               >
                 {isEditing ? (
-                  <div className="flex flex-wrap items-end gap-3" onClick={e => e.stopPropagation()}>
-                    <div className="flex-1 min-w-[140px]">
+                    <div className="flex flex-col sm:flex-row flex-wrap items-end gap-3" onClick={e => e.stopPropagation()}>
+                      <div className="flex-1 w-full sm:w-auto min-w-[100px] sm:min-w-[140px]">
                       <label className="block text-xs font-medium text-gray-500 mb-1">Team Name</label>
                       <input value={editForm.name}
                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
@@ -241,7 +241,7 @@ export default function Teams() {
                     type="number" min="0" step="0.01" placeholder="Set cash..."
                     value={cashInput[teamId] ?? ''}
                     onChange={e => setCashInput(prev => ({ ...prev, [teamId]: e.target.value }))}
-                    className="w-24 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/40 outline-none"
+                    className="w-full sm:w-24 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/40 outline-none"
                   />
                   <motion.button
                     onClick={() => handleSetCash(teamId, cashInput[teamId])}
