@@ -80,7 +80,7 @@ export default function Teams() {
     if (!selectedTeam) return
     try {
       setSaving(true)
-      await api.put(`/teams/${selectedTeam.id}/members`, { memberIds: selectedMembers })
+      await api.put(`/teams/${selectedTeam.id}/members`, { member_ids: selectedMembers })
       toast.success('Team members updated')
       fetchData()
     } catch (err) {

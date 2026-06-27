@@ -139,8 +139,8 @@ const ChampionModal = ({ champion, onClose }) => {
                       <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
                         {ach.title || ach.name || 'Achievement'}
                       </p>
-                      {ach.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{ach.description}</p>
+                      {(ach.date_earned || ach.dateEarned) && (
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500">{new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}</p>
                       )}
                     </div>
                     {ach.points != null && (

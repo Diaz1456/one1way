@@ -38,7 +38,7 @@ export default function Accounts() {
     }
     try {
       setCreating(true)
-      await api.post('/auth/register', form)
+      await api.post('/auth/register', { ...form, display_name: form.displayName })
       toast.success('Player created')
       setForm(initialForm)
       fetchPlayers()
@@ -77,9 +77,7 @@ export default function Accounts() {
     const formData = new FormData()
     formData.append('avatar', avatarFile)
     try {
-      const { data } = await api.put(`/users/${selectedPlayer.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      await api.put(`/users/${selectedPlayer.id}/avatar`, formData)
       toast.success('Avatar uploaded')
       setAvatarFile(null)
       setAvatarPreview(null)

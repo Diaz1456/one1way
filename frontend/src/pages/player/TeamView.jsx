@@ -26,8 +26,9 @@ const TeamView = () => {
         setTeam(myTeam || null)
       })
       .catch(err => {
-        setError(err.response?.data?.message || 'Failed to load teams')
-        toast.error('Failed to load teams')
+        const msg = err.response?.data?.error || 'Failed to load teams'
+        setError(msg)
+        toast.error(msg)
       })
       .finally(() => setLoading(false))
   }, [userId])

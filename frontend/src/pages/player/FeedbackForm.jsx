@@ -43,7 +43,7 @@ const FeedbackForm = () => {
       const newItem = data.feedback || data.message || data || { message: trimmed, senderId: userId, createdAt: new Date().toISOString() }
       setFeedbacks(prev => [newItem, ...prev])
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send feedback')
+      toast.error(err.response?.data?.error || 'Failed to send feedback')
     } finally {
       setSending(false)
       textareaRef.current?.focus()

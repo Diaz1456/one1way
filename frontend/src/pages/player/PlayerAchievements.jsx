@@ -50,8 +50,9 @@ const PlayerAchievements = ({ userDetails }) => {
         }
       })
       .catch(err => {
-        setError(err.response?.data?.message || 'Failed to load achievements')
-        toast.error('Failed to load achievements')
+        const msg = err.response?.data?.error || 'Failed to load achievements'
+        setError(msg)
+        toast.error(msg)
       })
       .finally(() => setLoading(false))
   }, [userId])
@@ -180,9 +181,9 @@ const PlayerAchievements = ({ userDetails }) => {
                     {ach.description && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{ach.description}</p>
                     )}
-                    {ach.dateEarned && (
+                    {(ach.date_earned || ach.dateEarned) && (
                       <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                        {new Date(ach.dateEarned).toLocaleDateString()}
+                        {new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}
                       </p>
                     )}
                   </div>

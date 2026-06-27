@@ -39,11 +39,11 @@ const Settings = ({ userDetails }) => {
     setSavingProfile(true)
     try {
       playClick()
-      await api.put(`/users/${userId}`, { displayName: trimmed })
+      await api.put(`/users/${userId}`, { display_name: trimmed })
       playCoinUp()
       toast.success('Display name updated!')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update display name')
+      toast.error(err.response?.data?.error || 'Failed to update display name')
     } finally {
       setSavingProfile(false)
     }
@@ -82,7 +82,7 @@ const Settings = ({ userDetails }) => {
       setNewPassword('')
       setConfirmPassword('')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to change password')
+      toast.error(err.response?.data?.error || 'Failed to change password')
     } finally {
       setSavingPassword(false)
     }

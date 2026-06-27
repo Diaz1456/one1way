@@ -52,7 +52,7 @@ export default function Leaderboard() {
   const saveNotes = async () => {
     if (!selectedPlayer) return
     try {
-      await api.put(`/users/${selectedPlayer.id}/notes`, { notes })
+      await api.put(`/users/${selectedPlayer.id}/notes`, { content: notes })
       toast.success('Notes saved')
     } catch {
       toast.error('Failed to save notes')
