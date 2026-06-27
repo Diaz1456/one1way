@@ -4,6 +4,7 @@ import { HiOutlineUsers, HiOutlineUserGroup, HiOutlineBadgeCheck, HiOutlineUser,
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
+import TeamRankingLive from '../../components/TeamRankingLive'
 
 const TeamView = () => {
   const { auth } = useStore()
@@ -186,6 +187,15 @@ const TeamView = () => {
             <p className="text-xs text-gray-500 dark:text-gray-400">Cash</p>
           </div>
         </div>
+      </motion.div>
+
+      <motion.div
+        key="ranking"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6"
+      >
+        <TeamRankingLive />
       </motion.div>
 
       <motion.div

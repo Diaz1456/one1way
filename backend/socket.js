@@ -123,11 +123,28 @@ async function computeTeamRankings() {
   }));
 }
 
+let previousRankings = [];
+
 export async function broadcastTeams() {
   if (!io) return;
   try {
     const ranked = await computeTeamRankings();
     emitToAll('teams:update', ranked);
+
+    const prevMap = {};
+    previousRankings.forEach(t => { prevMap[t.id] = t.rank; });
+
+    ranked.forEach(t => {
+      const prevRank = prevMap[t.id];
+      if (prevRank && prevRank > t.rank) {
+        const overtaken = previousRankings.find(o => o.rank === t.rank);
+        if (overtaken) {
+          broadcastOvertake(t.name, overtaken.name);
+        }
+      }
+    });
+
+    previousRankings = ranked;
   } catch (err) {
     console.error('broadcastTeams error:', err);
   }
