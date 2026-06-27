@@ -70,6 +70,10 @@ export function broadcastFeedback(feedback) {
   emitToAdmins('feedback:new', feedback);
 }
 
+export function broadcastAdminNote(playerUserId, data) {
+  emitToAll('admin_note:update', { playerUserId, ...data });
+}
+
 async function computeTeamRankings() {
   const teams = await Team.aggregate([
     {

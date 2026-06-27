@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineFilter, HiOutlineSparkles, HiOutlineUsers } from 'react-icons/hi'
+import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineFilter, HiOutlineSparkles, HiOutlineUsers, HiOutlineChat } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
 import { playCoinUp } from '../../sound'
+import { getSocket } from '../../socket'
 
 const stagger = { animate: { transition: { staggerChildren: 0.05 } } }
 const fadeUp = {
@@ -200,6 +201,26 @@ const Profile = ({ userDetails }) => {
   const [coins, setCoins] = useState(0)
   const [selectedChampion, setSelectedChampion] = useState(null)
   const [filter, setFilter] = useState('all')
+  const [adminNote, setAdminNote] = useState(null)
+
+  useEffect(() => {
+    if (userDetails?.admin_note) {
+      setAdminNote(userDetails.admin_note)
+    }
+  }, [userDetails?.admin_note])
+
+  useEffect(() => {
+    const socket = getSocket()
+    if (!socket) return
+    const handler = (data) => {
+      if (!auth.user?.id) return
+      if (data.playerUserId === auth.user.id || data.playerUserId === auth.user._id) {
+        setAdminNote(data)
+      }
+    }
+    socket.on('admin_note:update', handler)
+    return () => socket.off('admin_note:update', handler)
+  }, [auth.user?.id, auth.user?._id])
 
   const user = userDetails || auth.user || {}
   const displayName = user.username || 'Player'
@@ -327,6 +348,29 @@ const Profile = ({ userDetails }) => {
             <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
               ${(userDetails.team_cash || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Admin Note */}
+      {adminNote?.content && (
+        <motion.div variants={fadeSlideCard}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-sm">
+              <HiOutlineChat className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <h2 className="text-base font-bold text-gray-800 dark:text-white">Note from Admin</h2>
+                {adminNote.admin_username && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">— {adminNote.admin_username}</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                {adminNote.content}
+              </p>
+            </div>
           </div>
         </motion.div>
       )}

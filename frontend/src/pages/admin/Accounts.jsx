@@ -122,6 +122,9 @@ export default function Accounts() {
     }
   }
 
+  const [note, setNote] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
+
   const startEdit = (player) => {
     setEditingId(player.id)
     setEditForm({
@@ -129,6 +132,7 @@ export default function Accounts() {
       role: player.role || 'player',
       team_id: player.team_id || player.team?._id || player.teamId || '',
     })
+    setNote(player.admin_note?.content || '')
   }
 
   const cancelEdit = () => {
@@ -148,6 +152,19 @@ export default function Accounts() {
       fetchPlayers()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to update player')
+    }
+  }
+
+  const handleSaveNote = async () => {
+    if (!editingId) return
+    try {
+      setNoteSaving(true)
+      await api.put(`/users/${editingId}/notes`, { content: note })
+      toast.success('Note saved')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save note')
+    } finally {
+      setNoteSaving(false)
     }
   }
 
@@ -325,6 +342,21 @@ export default function Accounts() {
                                 <option key={t.id || t._id} value={t.id || t._id}>{t.name}</option>
                               ))}
                             </select>
+                          </div>
+                        </div>
+                        <div className="px-4 pb-4 bg-gray-50/50 dark:bg-gray-800/50">
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Admin Note</label>
+                          <textarea value={note} onChange={e => setNote(e.target.value)}
+                            rows={3} maxLength={2000}
+                            placeholder="Leave a private note for this player..."
+                            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none resize-none" />
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-400">{note.length}/2000</span>
+                            <motion.button onClick={handleSaveNote} disabled={noteSaving}
+                              whileTap={{ scale: 0.95 }}
+                              className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-all shadow-sm">
+                              {noteSaving ? 'Saving...' : 'Save Note'}
+                            </motion.button>
                           </div>
                         </div>
                       </motion.div>

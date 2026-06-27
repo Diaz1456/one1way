@@ -8,6 +8,7 @@ import { User, Team, Achievement, Coin, Note } from '../models/index.js';
 import mongoose from 'mongoose';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { requireValidObjectId } from '../middleware/validate.js';
+import { broadcastAdminNote } from '../socket.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -212,12 +213,11 @@ router.get('/:id/details', requireValidObjectId('id'), async (req, res) => {
 
     delete response.password_hash;
 
-    if (req.user.role === 'admin') {
-      const notes = await Note.find({ player_user_id: id })
-        .populate('admin_id', 'username')
-        .sort({ createdAt: -1 });
-      response.notes = notes;
-    }
+    const note = await Note.findOne({ player_user_id: id })
+      .populate('admin_id', 'username')
+      .sort({ createdAt: -1 });
+
+    response.admin_note = note || null;
 
     res.json(response);
   } catch (err) {
@@ -338,17 +338,31 @@ router.put('/:id/avatar', requireValidObjectId('id'), (req, res, next) => {
 router.put('/:id/notes', requireAdmin, requireValidObjectId('id'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    let { content } = req.body;
 
     if (content === undefined || content === null) {
       return res.status(400).json({ error: 'Content is required' });
     }
 
+    if (typeof content !== 'string') {
+      return res.status(400).json({ error: 'Content must be a string' });
+    }
+
+    const maxLen = 2000;
+    if (content.length > maxLen) {
+      return res.status(400).json({ error: `Note cannot exceed ${maxLen} characters` });
+    }
+
+    content = content.replace(/<[^>]*>/g, '').trim();
+
     const note = await Note.findOneAndUpdate(
       { player_user_id: id },
       { content, admin_id: req.user.id },
       { upsert: true, new: true }
-    );
+    ).populate('admin_id', 'username');
+
+    const adminUser = await User.findById(req.user.id).select('username');
+    broadcastAdminNote(id, { content, admin_username: adminUser?.username || 'Admin' });
 
     res.json(note);
   } catch (err) {
