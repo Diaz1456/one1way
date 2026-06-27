@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
+import { disconnectSocket } from '../socket'
 import RecentLogins from '../components/RecentLogins'
 import ThemeToggle from '../components/ThemeToggle'
 import Accounts from './admin/Accounts'
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
   }, [onlineUsers])
 
   const handleLogout = () => {
+    disconnectSocket()
     auth.logout()
     toast.success('Logged out')
     navigate('/login')

@@ -241,11 +241,8 @@ export default function Leaderboard() {
                           <FiStar className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{ach.title || 'Achievement'}</p>
+                          <p className="text-base font-bold text-gray-800 dark:text-white truncate">{ach.category || 'Achievement'}</p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            {ach.category && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">{ach.category}</span>
-                            )}
                             {(ach.date_earned || ach.dateEarned) && (
                               <span className="text-[10px] text-gray-400 dark:text-gray-500">
                                 {new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}

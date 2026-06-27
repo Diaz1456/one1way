@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { FiEdit2, FiTrash2, FiX, FiStar, FiSearch } from 'react-icons/fi'
 import api from '../../api'
 
-const initialForm = { user_id: '', title: '', description: '', category: '', points: 10, date_earned: new Date().toISOString().split('T')[0] }
+const initialForm = { user_id: '', description: '', category: '', points: 10, date_earned: new Date().toISOString().split('T')[0] }
 
 const stagger = { animate: { transition: { staggerChildren: 0.04 } } }
 const fadeSlide = {
@@ -46,8 +46,8 @@ export default function Achievements() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!form.user_id || !form.title) {
-      toast.error('Player and title are required')
+    if (!form.user_id || !form.category) {
+      toast.error('Player and category are required')
       return
     }
     try {
@@ -66,7 +66,6 @@ export default function Achievements() {
   const startEdit = (ach) => {
     setEditingId(ach.id || ach._id)
     setEditForm({
-      title: ach.title || '',
       description: ach.description || '',
       category: ach.category || '',
       points: ach.points || 0,
@@ -109,7 +108,8 @@ export default function Achievements() {
   })
 
   const filtered = achievements.filter(a =>
-    !filter || (a.title && a.title.toLowerCase().includes(filter.toLowerCase())) ||
+    !filter ||
+    (a.category && a.category.toLowerCase().includes(filter.toLowerCase())) ||
     (a.user_id?.username && a.user_id.username.toLowerCase().includes(filter.toLowerCase()))
   )
 
@@ -124,7 +124,7 @@ export default function Achievements() {
           </div>
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Add Achievement</h2>
         </div>
-        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <select value={form.user_id} onChange={e => setForm({ ...form, user_id: e.target.value })}
             className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all">
             <option value="">Select Player *</option>
@@ -132,17 +132,15 @@ export default function Achievements() {
               <option key={p.id} value={p.id}>{p.username}</option>
             ))}
           </select>
-          <input placeholder="Title *" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all" />
-          <input placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all" />
           <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all">
-            <option value="">No Category</option>
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all font-medium">
+            <option value="">Select Category *</option>
             {categories.map(c => (
               <option key={c.id || c._id} value={c.name}>{c.name}</option>
             ))}
           </select>
+          <input placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+            className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all" />
           <input type="number" placeholder="Points" value={form.points} onChange={e => setForm({ ...form, points: Number(e.target.value) })}
             className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all" />
           <motion.button type="submit" disabled={creating}
@@ -200,11 +198,6 @@ export default function Achievements() {
                   {isEditing ? (
                     <div className="flex flex-wrap gap-3 items-end">
                       <div className="flex-1 min-w-[120px]">
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
-                        <input value={editForm.title} onChange={e => setEditForm({ ...editForm, title: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none" />
-                      </div>
-                      <div className="flex-1 min-w-[120px]">
                         <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
                         <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none">
@@ -231,10 +224,7 @@ export default function Achievements() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{ach.title}</p>
-                          {ach.category && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-medium">{ach.category}</span>
-                          )}
+                          <p className="text-base font-bold text-gray-900 dark:text-white">{ach.category || 'Uncategorized'}</p>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400 dark:text-gray-500">
                           <span className="font-medium text-gray-600 dark:text-gray-400">{ach.user_id?.username || 'Unknown'}</span>

@@ -6,7 +6,12 @@ const SOCKET_URL = '/'
 let socket = null
 
 export const connectSocket = (token) => {
-  if (socket?.connected) return socket
+  /* Always disconnect stale socket first — fixes login-after-logout bug */
+  if (socket) {
+    socket.removeAllListeners()
+    socket.disconnect()
+    socket = null
+  }
 
   socket = io(SOCKET_URL, {
     auth: { token },
@@ -51,6 +56,7 @@ export const connectSocket = (token) => {
 
 export const disconnectSocket = () => {
   if (socket) {
+    socket.removeAllListeners()
     socket.disconnect()
     socket = null
     useStore.getState().setSocket(null)

@@ -171,12 +171,9 @@ const PlayerAchievements = ({ userDetails }) => {
                   <HiOutlineStar className="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-gray-800 dark:text-white">
-                        {ach.title || ach.name || 'Achievement'}
+                      <p className="text-base font-bold text-gray-800 dark:text-white">
+                        {ach.category || ach.type || 'Achievement'}
                       </p>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
-                        {ach.category || ach.type || 'General'}
-                      </span>
                     </div>
                     {ach.description && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{ach.description}</p>

@@ -10,6 +10,7 @@ import {
 import api from '../api'
 import useStore from '../store'
 import { playClick } from '../sound'
+import { disconnectSocket } from '../socket'
 import ThemeToggle from '../components/ThemeToggle'
 import Profile from './player/Profile'
 import DailyTask from './player/DailyTask'
@@ -260,6 +261,7 @@ const PlayerDashboard = () => {
 
   const handleLogout = () => {
     playClick()
+    disconnectSocket()
     auth.logout()
     navigate('/login')
   }

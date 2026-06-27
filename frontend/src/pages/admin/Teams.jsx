@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiUsers, FiTrash2, FiX } from 'react-icons/fi'
+import { FiUsers, FiTrash2, FiEdit2, FiX, FiCheck } from 'react-icons/fi'
 import api from '../../api'
 
 export default function Teams() {
@@ -13,6 +13,8 @@ export default function Teams() {
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [selectedMembers, setSelectedMembers] = useState([])
   const [saving, setSaving] = useState(false)
+  const [editingTeam, setEditingTeam] = useState(null)
+  const [editForm, setEditForm] = useState({ name: '', color: '' })
 
   const fetchData = useCallback(async () => {
     try {
@@ -90,6 +92,34 @@ export default function Teams() {
     }
   }
 
+  const startEdit = (team, e) => {
+    e.stopPropagation()
+    setEditingTeam(team.id || team._id)
+    setEditForm({ name: team.name, color: team.color || '#3b82f6' })
+  }
+
+  const cancelEdit = (e) => {
+    e.stopPropagation()
+    setEditingTeam(null)
+    setEditForm({ name: '', color: '' })
+  }
+
+  const saveEdit = async (id, e) => {
+    e.stopPropagation()
+    if (!editForm.name.trim()) {
+      toast.error('Team name is required')
+      return
+    }
+    try {
+      await api.put(`/teams/${id}`, editForm)
+      toast.success('Team updated')
+      setEditingTeam(null)
+      fetchData()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update team')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -125,25 +155,60 @@ export default function Teams() {
           <p className="text-center text-gray-400 dark:text-gray-500 py-8">No teams created yet</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teams.map(team => (
+            {teams.map(team => {
+              const teamId = team.id || team._id
+              const isEditing = editingTeam === teamId
+              return (
               <motion.div
-                key={team.id}
+                key={teamId}
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => openTeam(team)}
               >
+                {isEditing ? (
+                  <div className="flex flex-wrap items-end gap-3" onClick={e => e.stopPropagation()}>
+                    <div className="flex-1 min-w-[140px]">
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Team Name</label>
+                      <input value={editForm.name}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Color</label>
+                      <input type="color" value={editForm.color}
+                        onChange={e => setEditForm({ ...editForm, color: e.target.value })}
+                        className="w-12 h-9 p-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 cursor-pointer" />
+                    </div>
+                    <div className="flex gap-1.5">
+                      <motion.button onClick={e => saveEdit(teamId, e)} whileTap={{ scale: 0.95 }}
+                        className="px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-sm font-medium shadow-md shadow-green-500/20 flex items-center gap-1.5"><FiCheck size={14} /> Save</motion.button>
+                      <motion.button onClick={cancelEdit} whileTap={{ scale: 0.95 }}
+                        className="px-3 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium">Cancel</motion.button>
+                    </div>
+                  </div>
+                ) : (
+                <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full" style={{ backgroundColor: team.color || '#3b82f6' }} />
                     <h3 className="font-bold text-gray-900 dark:text-white">{team.name}</h3>
                   </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteTeam(team.id) }}
-                    className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                    <FiTrash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <motion.button
+                      onClick={e => startEdit(team, e)}
+                      whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                      className="p-1.5 text-gray-400 hover:text-blue-500 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                      <FiEdit2 size={14} />
+                    </motion.button>
+                    <motion.button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteTeam(teamId) }}
+                      whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                      className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      <FiTrash2 size={14} />
+                    </motion.button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                   <FiUsers size={14} />
@@ -172,6 +237,8 @@ export default function Teams() {
                       </div>
                     )}
                   </div>
+                )}
+                </div>
                 )}
               </motion.div>
             ))}

@@ -24,7 +24,8 @@ router.get('/', async (req, res) => {
       { $sort: { name: 1 } },
     ]);
 
-    res.json(teams);
+    const result = teams.map(t => ({ ...t, id: t._id.toString() }));
+    res.json(result);
   } catch (err) {
     console.error('List teams error:', err);
     res.status(500).json({ error: 'Failed to list teams' });
@@ -69,7 +70,7 @@ router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) =>
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    res.json(team);
+    res.json({ ...team.toObject(), id: team._id.toString() });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Team name already exists' });
@@ -91,7 +92,7 @@ router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res)
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    res.json({ message: 'Team deleted', team: { _id: team._id, name: team.name } });
+    res.json({ message: 'Team deleted', team: { id: team._id.toString(), name: team.name } });
   } catch (err) {
     console.error('Delete team error:', err);
     res.status(500).json({ error: 'Failed to delete team' });
@@ -139,7 +140,7 @@ router.put('/:id/members', requireAdmin, requireValidObjectId('id'), async (req,
       return res.status(404).json({ error: 'Team not found after update' });
     }
 
-    res.json(team[0]);
+    res.json({ ...team[0], id: team[0]._id.toString() });
   } catch (err) {
     console.error('Set team members error:', err);
     res.status(500).json({ error: 'Failed to update team members' });

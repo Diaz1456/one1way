@@ -57,10 +57,10 @@ async function getTeamTotalScore(teamId) {
 }
 
 router.post('/', requireAdmin, async (req, res) => {
-  const { user_id, title, description, category, points, date_earned } = req.body;
+  const { user_id, description, category, points, date_earned } = req.body;
 
-  if (!user_id || !title) {
-    return res.status(400).json({ error: 'user_id and title are required' });
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
   }
 
   if (!mongoose.Types.ObjectId.isValid(user_id)) {
@@ -87,7 +87,6 @@ router.post('/', requireAdmin, async (req, res) => {
 
     const achievement = await Achievement.create({
       user_id,
-      title,
       description: description || null,
       category: category || null,
       points: pointsVal,
@@ -147,10 +146,9 @@ router.post('/', requireAdmin, async (req, res) => {
 router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, category, points, date_earned } = req.body;
+    const { description, category, points, date_earned } = req.body;
 
     const update = {};
-    if (title !== undefined) update.title = title;
     if (description !== undefined) update.description = description;
     if (category !== undefined) update.category = category;
     if (points !== undefined) update.points = parseInt(points, 10) || 0;
@@ -183,7 +181,7 @@ router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res)
       return res.status(404).json({ error: 'Achievement not found' });
     }
 
-    res.json({ message: 'Achievement deleted', achievement: { id: achievement._id, title: achievement.title } });
+    res.json({ message: 'Achievement deleted', achievement: { id: achievement._id, category: achievement.category } });
   } catch (err) {
     console.error('Delete achievement error:', err);
     res.status(500).json({ error: 'Failed to delete achievement' });

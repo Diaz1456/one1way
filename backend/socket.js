@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { PresenceLog, User } from './models/index.js';
+import { GlobalCountdown, PresenceLog, User } from './models/index.js';
 
 let io = null;
 
@@ -106,6 +106,11 @@ export async function setupSocket(server) {
     io.emit('presence:update', { onlineUsers: Array.from(onlineUsers.values()) });
     await updatePresence(id, 'connect');
     await broadcastRecentLogins();
+
+    const countdown = await GlobalCountdown.findOne().sort({ createdAt: -1 });
+    if (countdown) {
+      socket.emit('countdown:sync', countdown);
+    }
 
     socket.on('heartbeat', () => {
       socket.data.lastActivity = Date.now();

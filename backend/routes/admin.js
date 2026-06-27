@@ -7,6 +7,22 @@ import { broadcastCountdown, getOnlineUsers } from '../socket.js';
 const router = Router();
 
 router.use(authenticateToken);
+
+router.get('/countdown', async (req, res) => {
+  try {
+    const countdown = await GlobalCountdown.findOne().sort({ createdAt: -1 });
+
+    if (!countdown) {
+      return res.json({ isActive: false, endTime: null, duration: 0 });
+    }
+
+    res.json(countdown);
+  } catch (err) {
+    console.error('Get countdown error:', err);
+    res.status(500).json({ error: 'Failed to get countdown' });
+  }
+});
+
 router.use(requireAdmin);
 
 router.post('/countdown', async (req, res) => {
@@ -56,21 +72,6 @@ router.post('/countdown', async (req, res) => {
   } catch (err) {
     console.error('Countdown error:', err);
     res.status(500).json({ error: 'Failed to manage countdown' });
-  }
-});
-
-router.get('/countdown', async (req, res) => {
-  try {
-    const countdown = await GlobalCountdown.findOne().sort({ createdAt: -1 });
-
-    if (!countdown) {
-      return res.json({ is_active: false, end_time: null, duration_seconds: 0 });
-    }
-
-    res.json(countdown);
-  } catch (err) {
-    console.error('Get countdown error:', err);
-    res.status(500).json({ error: 'Failed to get countdown' });
   }
 });
 
