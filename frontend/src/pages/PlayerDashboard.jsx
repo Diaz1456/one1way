@@ -5,7 +5,7 @@ import { Toaster, toast } from 'react-hot-toast'
 import {
   HiOutlineUser, HiOutlineClipboardCheck,
   HiOutlineUsers, HiOutlineChatAlt2, HiOutlineCog,
-  HiOutlineLogout, HiOutlineVolumeUp, HiOutlineVolumeOff
+  HiOutlineLogout, HiOutlineVolumeUp, HiOutlineVolumeOff, HiOutlineHome
 } from 'react-icons/hi'
 import { FiAward } from 'react-icons/fi'
 import api from '../api'
@@ -474,6 +474,7 @@ const PlayerDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [hallOfFameOpen, setHallOfFameOpen] = useState(false)
+  const isSubPage = location.pathname !== '/player' && location.pathname !== '/player/'
 
   const activeTab = tabs.find(t => location.pathname.startsWith(t.path))?.id || 'profile'
 
@@ -518,6 +519,16 @@ const PlayerDashboard = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </motion.button>
+          {isSubPage && (
+            <motion.button onClick={() => navigate('/player')}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center shadow-sm"
+              title="Main Menu">
+              <HiOutlineHome className="w-5 h-5" />
+            </motion.button>
+          )}
           <h1 className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             ONE WAY
           </h1>

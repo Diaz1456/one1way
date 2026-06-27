@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
+import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
   FiUsers, FiAward, FiStar, FiClock, FiMessageSquare, FiUsers as FiGroup, FiClock as FiTimer,
-  FiMenu, FiX, FiLogOut, FiBell, FiVolume2, FiVolumeX, FiSettings, FiTag
+  FiMenu, FiX, FiLogOut, FiBell, FiVolume2, FiVolumeX, FiSettings, FiTag, FiHome
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
@@ -124,6 +124,8 @@ export default function AdminDashboard() {
   }
 
   const user = auth.user || {}
+  const location = useLocation()
+  const isSubPage = location.pathname !== '/admin'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -134,6 +136,16 @@ export default function AdminDashboard() {
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center">
             <FiMenu size={20} />
           </motion.button>
+          {isSubPage && (
+            <motion.button onClick={() => navigate('/admin')}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center shadow-sm"
+              title="Main Menu">
+              <FiHome size={18} />
+            </motion.button>
+          )}
           <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">One Way</h1>
         </div>
 
