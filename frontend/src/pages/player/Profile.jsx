@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineFilter, HiOutlineSparkles, HiOutlineUsers, HiOutlineChat } from 'react-icons/hi'
+import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineUsers, HiOutlineChat } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
@@ -233,54 +233,48 @@ const ChampionModal = ({ champion, onClose }) => {
                   <div className="absolute inset-0 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
                 </div>
               </div>
-            ) : achievements.length === 0 ? (
+            ) : categories.length === 0 ? (
               <p className="text-center text-gray-400 text-sm py-8">No achievements yet</p>
             ) : (
-              <>
-                {categories.length > 0 && (
+              <div className="space-y-3">
+                {categories.map((cat, i) => (
                   <motion.div
-                    initial={{ opacity: 0, y: 8 }}
+                    key={cat.name}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-wrap gap-1.5 mb-4"
+                    transition={{ delay: i * 0.08 }}
+                    className={`p-4 rounded-xl border ${
+                      i === 0
+                        ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-700/40'
+                        : 'bg-gray-50 dark:bg-gray-700/30 border-gray-100 dark:border-gray-700'
+                    }`}
                   >
-                    {categories.map((cat, i) => (
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-base sm:text-lg font-bold truncate ${
+                        i === 0 ? 'text-yellow-700 dark:text-yellow-300' : 'text-gray-800 dark:text-white'
+                      }`}>
+                        {cat.name}
+                      </p>
+                      <p className={`text-lg sm:text-xl font-black tabular-nums shrink-0 ${
+                        i === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'
+                      }`}>
+                        {Number.isInteger(cat.points) ? cat.points.toLocaleString() : cat.points.toFixed(1)}
+                      </p>
+                    </div>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">{cat.count} {cat.count === 1 ? 'entry' : 'entries'}</p>
+                    <div className="mt-2.5 w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                       <motion.div
-                        key={cat.name}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700"
-                      >
-                        <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400">{cat.name}:</span>
-                        <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                          {Number.isInteger(cat.points) ? cat.points.toLocaleString() : cat.points.toFixed(1)}
-                        </span>
-                      </motion.div>
-                    ))}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(cat.points / maxCatPoints) * 100}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.08 + 0.2 }}
+                        className={`h-full rounded-full ${
+                          i === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                        }`}
+                      />
+                    </div>
                   </motion.div>
-                )}
-                <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
-                  {achievements.map((ach, i) => (
-                    <motion.div key={ach.id || i} variants={fadeUp}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group">
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shrink-0 shadow-sm">
-                        <HiOutlineStar className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-800 dark:text-white truncate">
-                          {ach.category || ach.type || 'Achievement'}
-                        </p>
-                        {(ach.date_earned || ach.dateEarned) && (
-                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}</p>
-                        )}
-                      </div>
-                      {ach.points != null && (
-                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform">+{Number.isInteger(ach.points) ? ach.points : parseFloat(ach.points).toFixed(1)}</span>
-                      )}
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </>
+                ))}
+              </div>
             )}
           </div>
         </motion.div>
@@ -294,7 +288,6 @@ const Profile = ({ userDetails }) => {
   const [rank, setRank] = useState(null)
   const [coins, setCoins] = useState(0)
   const [selectedChampion, setSelectedChampion] = useState(null)
-  const [filter, setFilter] = useState('all')
   const [adminNote, setAdminNote] = useState(null)
 
   useEffect(() => {
@@ -356,15 +349,6 @@ const Profile = ({ userDetails }) => {
   }, [achievements])
 
   const maxCategoryPoints = categories.length > 0 ? Math.max(...categories.map(c => c.points)) : 1
-  const categoryColors = [
-    'bg-gradient-to-r from-blue-500 to-blue-400', 'bg-gradient-to-r from-emerald-500 to-emerald-400',
-    'bg-gradient-to-r from-violet-500 to-violet-400', 'bg-gradient-to-r from-amber-500 to-amber-400',
-    'bg-gradient-to-r from-rose-500 to-rose-400', 'bg-gradient-to-r from-cyan-500 to-cyan-400',
-    'bg-gradient-to-r from-pink-500 to-pink-400', 'bg-gradient-to-r from-lime-500 to-lime-400'
-  ]
-  const uniqueCategories = ['all', ...categories.map(c => c.name)]
-  const filtered = filter === 'all' ? achievements : achievements.filter(a => (a.category || a.type || 'General') === filter)
-
   return (
     <motion.div initial="initial" animate="animate" className="max-w-4xl mx-auto space-y-6">
 
@@ -489,79 +473,61 @@ const Profile = ({ userDetails }) => {
       {categories.length > 0 && (
         <motion.div variants={fadeSlideCard}
           className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-700 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <HiOutlineChartBar className="w-4 h-4 text-white" />
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                <HiOutlineChartBar className="w-4 h-4 text-white" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Score by Category</h2>
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Score by Category</h2>
+            <div className="text-right">
+              <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tabular-nums">
+                {Number.isInteger(totalScore) ? totalScore.toLocaleString() : totalScore.toFixed(1)}
+              </p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">total</p>
+            </div>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {categories.map((cat, i) => (
-              <ProgressBar key={cat.name} label={cat.name} value={cat.points} max={maxCategoryPoints} color={categoryColors[i % categoryColors.length]} delay={i * 0.06} />
+              <motion.div
+                key={cat.name}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                className={`relative p-4 rounded-xl border overflow-hidden ${
+                  i === 0
+                    ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-700/40'
+                    : 'bg-gray-50 dark:bg-gray-700/30 border-gray-100 dark:border-gray-700'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{cat.name}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{cat.count} {cat.count === 1 ? 'entry' : 'entries'}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className={`text-lg sm:text-xl font-black tabular-nums ${
+                      i === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'
+                    }`}>
+                      {Number.isInteger(cat.points) ? cat.points.toLocaleString() : cat.points.toFixed(1)}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2.5 w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(cat.points / maxCategoryPoints) * 100}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.06 + 0.2 }}
+                    className={`h-full rounded-full ${
+                      i === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                    }`}
+                  />
+                </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
       )}
-
-      {/* Achievements grid */}
-      <motion.div variants={fadeSlideCard}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-              <HiOutlineStar className="w-4 h-4 text-white" />
-            </div>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-              Achievements {achievements.length > 0 && <span className="text-sm font-normal text-gray-400">({achievements.length})</span>}
-            </h2>
-          </div>
-          {uniqueCategories.length > 1 && (
-            <motion.div initial={false} className="flex items-center gap-2">
-              <HiOutlineFilter className="w-4 h-4 text-gray-400" />
-              <select value={filter} onChange={e => setFilter(e.target.value)}
-                className="text-sm border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all">
-                {uniqueCategories.map(cat => (
-                  <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
-                ))}
-              </select>
-            </motion.div>
-          )}
-        </div>
-
-        {achievements.length === 0 ? (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-400 text-sm py-12">No achievements yet</motion.p>
-        ) : filtered.length === 0 ? (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-400 text-sm py-12">No achievements match this category</motion.p>
-        ) : (
-          <motion.div variants={stagger} initial="initial" animate="animate" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence mode="popLayout">
-              {filtered.map((ach, i) => (
-                <motion.div key={ach.id || i} layout variants={fadeSlideCard}
-                  whileHover={{ y: -3, scale: 1.02 }}
-                  className="group bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600/40 p-4 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/20 hover:border-blue-200 dark:hover:border-blue-700/50 transition-all">
-                  <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform">
-                      <HiOutlineStar className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <p className="text-base font-bold text-gray-800 dark:text-white truncate">{ach.category || ach.type || 'Achievement'}</p>
-                      </div>
-                      {ach.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{ach.description}</p>}
-                      {(ach.date_earned || ach.dateEarned) && (
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">{new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}</p>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="inline-flex items-center gap-0.5 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">+{ach.points || ach.score || 0}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </motion.div>
 
     </motion.div>
   )

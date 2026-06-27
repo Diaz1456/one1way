@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { HiOutlineStar, HiOutlineChartBar, HiOutlineFilter } from 'react-icons/hi'
+import { motion } from 'framer-motion'
+import { HiOutlineChartBar } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
@@ -33,7 +33,6 @@ const PlayerAchievements = ({ userDetails }) => {
   const [achievements, setAchievements] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [filter, setFilter] = useState('all')
   const hasPlayed = useRef(false)
 
   const userId = userDetails?.id || auth.user?.id
@@ -71,14 +70,6 @@ const PlayerAchievements = ({ userDetails }) => {
   const totalScore = useMemo(() => achievements.reduce((s, a) => s + parseFloat(a.points || a.score || 0), 0), [achievements])
   const maxCategoryPoints = categories.length > 0 ? Math.max(...categories.map(c => c.points)) : 1
 
-  const categoryColors = [
-    'bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500',
-    'bg-rose-500', 'bg-cyan-500', 'bg-pink-500', 'bg-lime-500'
-  ]
-
-  const uniqueCategories = ['all', ...categories.map(c => c.name)]
-  const filtered = filter === 'all' ? achievements : achievements.filter(a => (a.category || a.type || 'General') === filter)
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -107,91 +98,59 @@ const PlayerAchievements = ({ userDetails }) => {
       className="max-w-4xl mx-auto space-y-6"
     >
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <HiOutlineChartBar className="w-6 h-6 text-blue-500" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Score by Category</h2>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{Number.isInteger(totalScore) ? totalScore.toLocaleString() : totalScore.toFixed(1)}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total Score</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white tabular-nums">
+              {Number.isInteger(totalScore) ? totalScore.toLocaleString() : totalScore.toFixed(1)}
+            </p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500">total</p>
           </div>
         </div>
-        <div className="mt-5 space-y-3">
-          {categories.length === 0 ? (
-            <p className="text-center text-gray-400 text-sm py-6">No achievements yet</p>
-          ) : (
-            categories.map((cat, i) => (
-              <ProgressBar
-                key={cat.name}
-                label={cat.name}
-                value={cat.points}
-                max={maxCategoryPoints}
-                color={categoryColors[i % categoryColors.length]}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <HiOutlineStar className="w-6 h-6 text-yellow-500" />
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">All Achievements</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <HiOutlineFilter className="w-4 h-4 text-gray-400" />
-            <select
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-              className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              {uniqueCategories.map(cat => (
-                <option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          <p className="text-center text-gray-400 text-sm py-6">No achievements to show</p>
+        {categories.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-8">No achievements yet</p>
         ) : (
-          <div className="space-y-2">
-            <AnimatePresence>
-              {filtered.map((ach, i) => (
-                <motion.div
-                  key={ach.id || i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ delay: i * 0.03 }}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  <HiOutlineStar className="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-base font-bold text-gray-800 dark:text-white">
-                        {ach.category || ach.type || 'Achievement'}
-                      </p>
-                    </div>
-                    {ach.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{ach.description}</p>
-                    )}
-                    {(ach.date_earned || ach.dateEarned) && (
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                        {new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}
-                      </p>
-                    )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {categories.map((cat, i) => (
+              <motion.div
+                key={cat.name}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                className={`relative p-4 rounded-xl border overflow-hidden ${
+                  i === 0
+                    ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-700/40'
+                    : 'bg-gray-50 dark:bg-gray-700/30 border-gray-100 dark:border-gray-700'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{cat.name}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{cat.count} {cat.count === 1 ? 'entry' : 'entries'}</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                      +{(ach.points || ach.score || 0) % 1 === 0 ? (ach.points || ach.score || 0) : (ach.points || ach.score || 0).toFixed(2)}
-                    </span>
+                  <div className="shrink-0 text-right">
+                    <p className={`text-lg sm:text-xl font-black tabular-nums ${
+                      i === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'
+                    }`}>
+                      {Number.isInteger(cat.points) ? cat.points.toLocaleString() : cat.points.toFixed(1)}
+                    </p>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                </div>
+                <div className="mt-2.5 w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(cat.points / maxCategoryPoints) * 100}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.06 + 0.2 }}
+                    className={`h-full rounded-full ${
+                      i === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                    }`}
+                  />
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>

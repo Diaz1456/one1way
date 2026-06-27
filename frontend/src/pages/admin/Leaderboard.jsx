@@ -233,7 +233,7 @@ export default function Leaderboard() {
                     No achievements yet
                   </motion.p>
                 ) : (
-                  <>
+                  <div className="space-y-3">
                     {(() => {
                       const catMap = {}
                       modalData.achievements.forEach(a => {
@@ -241,51 +241,45 @@ export default function Leaderboard() {
                         catMap[cat] = (catMap[cat] || 0) + parseFloat(a.points || 0)
                       })
                       const cats = Object.entries(catMap).sort((a, b) => b[1] - a[1])
-                      return cats.length > 0 ? (
+                      const maxPts = cats.length > 0 ? Math.max(...cats.map(c => c[1])) : 1
+                      return cats.map(([name, pts], i) => (
                         <motion.div
-                          initial={{ opacity: 0, y: 8 }}
+                          key={name}
+                          initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="flex flex-wrap gap-1.5 mb-4"
+                          transition={{ delay: i * 0.08 }}
+                          className={`p-4 rounded-xl border ${
+                            i === 0
+                              ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-700/40'
+                              : 'bg-gray-50 dark:bg-gray-700/30 border-gray-100 dark:border-gray-700'
+                          }`}
                         >
-                          {cats.map(([name, pts], i) => (
-                            <motion.div
-                              key={name}
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: i * 0.05 }}
-                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-700"
-                            >
-                              <span className="text-[11px] font-medium text-gray-600 dark:text-gray-400">{name}:</span>
-                              <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                                {Number.isInteger(pts) ? pts.toLocaleString() : pts.toFixed(1)}
-                              </span>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      ) : null
-                    })()}
-                    <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
-                    {modalData.achievements.slice(0, 50).map((ach, i) => (
-                      <motion.div key={ach.id || i} variants={cardItem}
-                        className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm">
-                          <FiStar className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-base font-bold text-gray-800 dark:text-white truncate">{ach.category || 'Achievement'}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {(ach.date_earned || ach.dateEarned) && (
-                              <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                                {new Date(ach.date_earned || ach.dateEarned).toLocaleDateString()}
-                              </span>
-                            )}
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={`text-base sm:text-lg font-bold truncate ${
+                              i === 0 ? 'text-yellow-700 dark:text-yellow-300' : 'text-gray-800 dark:text-white'
+                            }`}>
+                              {name}
+                            </p>
+                            <p className={`text-lg sm:text-xl font-black tabular-nums shrink-0 ${
+                              i === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'
+                            }`}>
+                              {Number.isInteger(pts) ? pts.toLocaleString() : pts.toFixed(1)}
+                            </p>
                           </div>
-                        </div>
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 shrink-0 group-hover:scale-110 transition-transform tabular-nums">+{ach.points != null ? (Number.isInteger(ach.points) ? ach.points : parseFloat(ach.points).toFixed(1)) : 0}</span>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                  </>
+                          <div className="mt-2.5 w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(pts / maxPts) * 100}%` }}
+                              transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.08 + 0.2 }}
+                              className={`h-full rounded-full ${
+                                i === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                              }`}
+                            />
+                          </div>
+                        </motion.div>
+                      ))
+                    })()}
+                  </div>
                 )}
               </div>
             </motion.div>
