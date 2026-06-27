@@ -4,7 +4,7 @@ import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlin
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
-import { playCoinUp } from '../../sound'
+
 import { getSocket } from '../../socket'
 
 const stagger = { animate: { transition: { staggerChildren: 0.05 } } }
@@ -286,7 +286,6 @@ const ChampionModal = ({ champion, onClose }) => {
 const Profile = ({ userDetails }) => {
   const { auth } = useStore()
   const [rank, setRank] = useState(null)
-  const [coins, setCoins] = useState(0)
   const [selectedChampion, setSelectedChampion] = useState(null)
   const [adminNote, setAdminNote] = useState(null)
 
@@ -327,15 +326,6 @@ const Profile = ({ userDetails }) => {
       })
       .catch(() => {})
   }, [userId])
-
-  useEffect(() => {
-    if (!userId) return
-    api.get(`/coins/${userId}`)
-      .then(({ data }) => setCoins(data.balance ?? data.coins ?? data.amount ?? 0))
-      .catch(() => {})
-  }, [userId])
-
-  useEffect(() => { playCoinUp() }, [])
 
   const categories = useMemo(() => {
     const map = {}
@@ -379,20 +369,12 @@ const Profile = ({ userDetails }) => {
           </motion.div>
         )}
 
-        <motion.div variants={fadeUp} className="mt-6 flex items-center justify-center gap-8">
-          <motion.div whileHover={{ scale: 1.05 }} className="text-center">
-            <p className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tabular-nums">
+        <motion.div variants={fadeUp} className="mt-6 flex items-center justify-center">
+          <motion.div whileHover={{ scale: 1.05 }} className="text-center px-6 py-3 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/10 border border-blue-100 dark:border-blue-800/30">
+            <p className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
               {Number.isInteger(totalScore) ? totalScore.toLocaleString() : totalScore.toFixed(1)}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Score</p>
-          </motion.div>
-          <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
-          <motion.div whileHover={{ scale: 1.05 }} className="text-center">
-            <div className="flex items-center gap-1 justify-center">
-              <span className="text-3xl sm:text-4xl font-extrabold text-yellow-500 tabular-nums">{coins.toLocaleString()}</span>
-              <span className="text-2xl">🪙</span>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Coins</p>
+            <p className="text-[10px] font-semibold text-blue-500 dark:text-blue-400 mt-0.5 uppercase tracking-wider">Total Score</p>
           </motion.div>
         </motion.div>
       </motion.div>
