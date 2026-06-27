@@ -206,7 +206,7 @@ export default function Teams() {
                     </div>
                   </div>
                 ) : (
-                <div>
+                <>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full" style={{ backgroundColor: team.color || '#3b82f6' }} />
@@ -276,10 +276,10 @@ export default function Teams() {
                     )}
                   </div>
                 )}
-                </div>
+                </>
                 )}
               </motion.div>
-            ))}
+            )})}
           </div>
         )}
       </div>

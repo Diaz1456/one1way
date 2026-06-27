@@ -9,7 +9,6 @@ import {
 import useStore from '../store'
 import api from '../api'
 import { disconnectSocket } from '../socket'
-import RecentLogins from '../components/RecentLogins'
 import ThemeToggle from '../components/ThemeToggle'
 import TeamRankings from '../components/TeamRankings'
 import Accounts from './admin/Accounts'
@@ -21,13 +20,15 @@ import Feedback from './admin/Feedback'
 import Teams from './admin/Teams'
 import Countdown from './admin/Countdown'
 import AdminSettings from './admin/Settings'
+import DailyTasks from './admin/DailyTasks'
 
 const navItems = [
   { path: 'accounts', label: 'Accounts', icon: FiUsers },
   { path: 'leaderboard', label: 'Leaderboard', icon: FiAward },
   { path: 'achievements', label: 'Achievements', icon: FiStar },
   { path: 'categories', label: 'Categories', icon: FiTag },
-  { path: 'history', label: 'History', icon: FiClock },
+  { path: 'tasks', label: 'Daily Tasks', icon: FiClock },
+  { path: 'history', label: 'History', icon: FiTimer },
   { path: 'feedback', label: 'Feedback', icon: FiMessageSquare },
   { path: 'teams', label: 'Teams', icon: FiGroup },
   { path: 'countdown', label: 'Countdown Timer', icon: FiTimer },
@@ -217,6 +218,7 @@ export default function AdminDashboard() {
               <Route path="leaderboard" element={<motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Leaderboard /></motion.div>} />
               <Route path="achievements" element={<motion.div key="achievements" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Achievements /></motion.div>} />
               <Route path="categories" element={<motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Categories /></motion.div>} />
+              <Route path="tasks" element={<motion.div key="tasks" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><DailyTasks /></motion.div>} />
               <Route path="history" element={<motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><History /></motion.div>} />
               <Route path="feedback" element={<motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Feedback /></motion.div>} />
               <Route path="teams" element={<motion.div key="teams" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Teams /></motion.div>} />

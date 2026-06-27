@@ -9,6 +9,7 @@ dotenv.config();
 
 import { connectDB } from './db.js';
 import { setupSocket } from './socket.js';
+import { startScheduler } from './scheduler.js';
 
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
@@ -72,6 +73,7 @@ async function start() {
     console.log('Database connected');
 
     await setupSocket(server);
+    startScheduler();
 
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`OneWay backend server running on port ${PORT}`);

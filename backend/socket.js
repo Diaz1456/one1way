@@ -48,7 +48,7 @@ export async function broadcastRecentLogins() {
     const recent = logs
       .filter(l => l.user_id)
       .map(l => ({ username: l.user_id.username, timestamp: l.timestamp }));
-    emitToAll('presence:recent', recent);
+    emitToAdmins('presence:recent', recent);
   } catch (err) {
     console.error('Broadcast recent logins error:', err);
   }

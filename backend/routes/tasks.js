@@ -9,33 +9,47 @@ const router = Router();
 
 router.use(authenticateToken);
 
-router.get('/current', async (req, res) => {
+/* List all tasks (admin) */
+router.get('/', requireAdmin, async (req, res) => {
   try {
-    const task = await DailyTask.findOne({ is_active: true }).sort({ createdAt: -1 });
-
-    if (!task) {
-      return res.json(null);
-    }
-
-    if (req.user.role === 'player') {
-      const today = new Date().toISOString().split('T')[0];
-      const completion = await DailyTaskCompletion.findOne({
-        user_id: req.user.id,
-        task_id: task._id,
-        date: today,
-      });
-      const taskObj = task.toObject();
-      taskObj.completed = completion ? completion.completed : false;
-      return res.json(taskObj);
-    }
-
-    res.json(task);
+    const tasks = await DailyTask.find().sort({ createdAt: -1 });
+    res.json(tasks);
   } catch (err) {
-    console.error('Get current task error:', err);
-    res.status(500).json({ error: 'Failed to get current task' });
+    console.error('List tasks error:', err);
+    res.status(500).json({ error: 'Failed to list tasks' });
   }
 });
 
+/* Get current active tasks with completion status for today */
+router.get('/current', async (req, res) => {
+  try {
+    const tasks = await DailyTask.find({ is_active: true }).sort({ createdAt: -1 });
+
+    if (req.user.role === 'player') {
+      const today = new Date().toISOString().split('T')[0];
+      const completions = await DailyTaskCompletion.find({
+        user_id: req.user.id,
+        date: today,
+      });
+      const completionMap = {};
+      completions.forEach(c => { completionMap[c.task_id.toString()] = c.completed; });
+
+      const result = tasks.map(t => {
+        const obj = t.toObject();
+        obj.completed = completionMap[t._id.toString()] || false;
+        return obj;
+      });
+      return res.json(result);
+    }
+
+    res.json(tasks);
+  } catch (err) {
+    console.error('Get current tasks error:', err);
+    res.status(500).json({ error: 'Failed to get current tasks' });
+  }
+});
+
+/* Create a new daily task (admin) */
 router.post('/', requireAdmin, async (req, res) => {
   const { description, points_reward, coins_reward } = req.body;
 
@@ -44,8 +58,6 @@ router.post('/', requireAdmin, async (req, res) => {
   }
 
   try {
-    await DailyTask.updateMany({ is_active: true }, { is_active: false });
-
     const task = await DailyTask.create({
       description: description.trim(),
       points_reward: parseInt(points_reward, 10) || 0,
@@ -62,6 +74,46 @@ router.post('/', requireAdmin, async (req, res) => {
   }
 });
 
+/* Update a task (admin) */
+router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) => {
+  const { description, points_reward, coins_reward, is_active } = req.body;
+
+  try {
+    const update = {};
+    if (description !== undefined) update.description = description.trim();
+    if (points_reward !== undefined) update.points_reward = parseInt(points_reward, 10);
+    if (coins_reward !== undefined) update.coins_reward = parseInt(coins_reward, 10);
+    if (is_active !== undefined) update.is_active = is_active;
+
+    const task = await DailyTask.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    broadcastTask(task);
+    res.json(task);
+  } catch (err) {
+    console.error('Update task error:', err);
+    res.status(500).json({ error: 'Failed to update task' });
+  }
+});
+
+/* Delete a task (admin) */
+router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) => {
+  try {
+    const task = await DailyTask.findByIdAndDelete(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    await DailyTaskCompletion.deleteMany({ task_id: req.params.id });
+    res.json({ message: 'Task deleted' });
+  } catch (err) {
+    console.error('Delete task error:', err);
+    res.status(500).json({ error: 'Failed to delete task' });
+  }
+});
+
+/* Toggle completion for a task */
 router.post('/complete', async (req, res) => {
   const { task_id } = req.body;
 
@@ -103,8 +155,7 @@ router.post('/complete', async (req, res) => {
       if (task.points_reward > 0) {
         await Achievement.create({
           user_id: req.user.id,
-          title: `Completed: ${task.description}`,
-          description: 'Daily task reward',
+          description: task.description,
           category: 'daily_task',
           points: task.points_reward,
           date_earned: new Date(),
@@ -126,6 +177,7 @@ router.post('/complete', async (req, res) => {
   }
 });
 
+/* Task completion history (admin) */
 router.get('/history', requireAdmin, async (req, res) => {
   try {
     const { player_id, from_date, to_date } = req.query;

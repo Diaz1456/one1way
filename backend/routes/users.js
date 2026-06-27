@@ -100,6 +100,7 @@ router.get('/leaderboard', async (req, res) => {
         },
       },
       { $sort: { total_points: -1 } },
+      ...(req.user.role !== 'admin' ? [{ $limit: 5 }] : []),
       { $project: { password_hash: 0, achievements: 0 } },
     ]);
     const mapped = results.map(u => ({ ...u, id: u._id.toString() }));

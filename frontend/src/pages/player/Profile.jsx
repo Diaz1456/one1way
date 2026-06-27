@@ -5,7 +5,6 @@ import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
 import { playCoinUp } from '../../sound'
-import RecentLogins from '../../components/RecentLogins'
 
 const stagger = { animate: { transition: { staggerChildren: 0.05 } } }
 const fadeUp = {
@@ -393,7 +392,6 @@ const Profile = ({ userDetails }) => {
         )}
       </motion.div>
 
-      <RecentLogins />
     </motion.div>
   )
 }
