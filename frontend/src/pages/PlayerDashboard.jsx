@@ -12,6 +12,7 @@ import useStore from '../store'
 import { playClick } from '../sound'
 import { disconnectSocket } from '../socket'
 import ThemeToggle from '../components/ThemeToggle'
+import TeamRankings from '../components/TeamRankings'
 import Profile from './player/Profile'
 import DailyTask from './player/DailyTask'
 import TeamView from './player/TeamView'
@@ -349,6 +350,13 @@ const PlayerDashboard = () => {
             </div>
           ) : (
             <div className="space-y-6">
+              <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-900/10 dark:via-amber-900/10 dark:to-orange-900/10 rounded-3xl p-4 sm:p-6 border border-yellow-100 dark:border-yellow-900/20 shadow-lg shadow-yellow-500/5">
+                <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                  <span className="text-xl">🏆</span>
+                  Team Rankings &amp; Cash
+                </h2>
+                <TeamRankings />
+              </div>
               <Routes>
                 <Route index element={<Profile userDetails={userDetails} />} />
                 <Route path="profile" element={<Profile userDetails={userDetails} />} />
