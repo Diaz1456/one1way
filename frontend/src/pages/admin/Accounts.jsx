@@ -229,6 +229,7 @@ export default function Accounts() {
             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input placeholder="Search players..." value={filter}
               onChange={e => setFilter(e.target.value)}
+              autoComplete="off"
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all text-sm" />
           </div>
         </div>

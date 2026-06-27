@@ -85,7 +85,7 @@ export default function Feedback() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-gray-900 dark:text-white">{f.name || f.username || f.sender || 'Anonymous'}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{f.sender_user_id?.username || f.sender_username || f.name || f.username || f.sender || 'Anonymous'}</span>
                         {f.email && (
                           <span className="text-xs text-gray-400 dark:text-gray-500">{f.email}</span>
                         )}

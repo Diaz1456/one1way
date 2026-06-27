@@ -18,6 +18,7 @@ import Categories from './admin/Categories'
 import History from './admin/History'
 import Feedback from './admin/Feedback'
 import Teams from './admin/Teams'
+import RecentLogins from '../components/RecentLogins'
 import Countdown from './admin/Countdown'
 import AdminSettings from './admin/Settings'
 import DailyTasks from './admin/DailyTasks'
@@ -207,9 +208,12 @@ export default function AdminDashboard() {
                       </h2>
                       <TeamRankings />
                     </div>
-                    <div className="text-center py-8">
-                      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.username || 'Admin'}!</h2>
-                      <p className="text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="text-center py-8">
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Welcome, {user.username || 'Admin'}!</h2>
+                        <p className="text-gray-500 dark:text-gray-400">Select a section from the sidebar to manage your application.</p>
+                      </div>
+                      <RecentLogins />
                     </div>
                   </div>
                 </motion.div>

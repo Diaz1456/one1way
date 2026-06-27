@@ -69,8 +69,7 @@ export default function Teams() {
 
   const openTeam = (team) => {
     setSelectedTeam(team)
-    const memberIds = (team.members || team.players || []).map(m => m.id || m.userId || m)
-    setSelectedMembers(memberIds)
+    setSelectedMembers(team.member_ids || [])
   }
 
   const toggleMember = (playerId) => {
@@ -230,7 +229,7 @@ export default function Teams() {
                 <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
                   <span className="flex items-center gap-1">
                     <FiUsers size={14} />
-                    {(team.members?.length || team.players?.length || 0)} members
+                    {(team.member_count || 0)} members
                   </span>
                   <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
                     <FiDollarSign size={14} />
@@ -252,10 +251,9 @@ export default function Teams() {
                     Set Cash
                   </motion.button>
                 </div>
-                {(team.members?.length > 0 || team.players?.length > 0) && (
+                    {(team.member_count || 0) > 0 && (
                   <div className="flex -space-x-2 mt-3">
-                    {(team.members || team.players || []).slice(0, 5).map((m) => {
-                      const uid = m.id || m.userId || m
+                    {(team.member_ids || []).slice(0, 5).map((uid) => {
                       const pl = players.find(p => p.id === uid)
                       return (
                         <div key={uid} className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-gray-800 overflow-hidden" title={pl?.username || uid}>
@@ -269,9 +267,9 @@ export default function Teams() {
                         </div>
                       )
                     })}
-                    {(team.members?.length || team.players?.length || 0) > 5 && (
+                    {team.member_count > 5 && (
                       <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-600 border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400">
-                        +{(team.members?.length || team.players?.length) - 5}
+                        +{team.member_count - 5}
                       </div>
                     )}
                   </div>

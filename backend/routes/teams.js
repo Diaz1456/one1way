@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
           as: 'members',
         },
       },
-      { $addFields: { member_count: { $size: '$members' } } },
+      { $addFields: { member_count: { $size: '$members' }, member_ids: '$members._id' } },
       { $project: { members: 0 } },
       { $sort: { name: 1 } },
     ]);
