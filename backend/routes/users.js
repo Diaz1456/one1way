@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { User, Team, Achievement, Coin, Note } from '../models/index.js';
+import mongoose from 'mongoose';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { requireValidObjectId } from '../middleware/validate.js';
 
@@ -184,11 +185,26 @@ router.get('/:id/details', requireValidObjectId('id'), async (req, res) => {
 
     const totalPoints = achievements.reduce((sum, a) => sum + (a.points || 0), 0);
 
+    let team_cash = null;
+    let team_rank = null;
+
+    if (user.team_id) {
+      team_cash = user.team_id.cash || 0;
+      const rankedTeams = await Team.aggregate([
+        { $sort: { cash: -1, name: 1 } },
+        { $project: { _id: 1 } },
+      ]);
+      const pos = rankedTeams.findIndex(t => t._id.toString() === user.team_id._id.toString());
+      team_rank = pos >= 0 ? pos + 1 : null;
+    }
+
     const response = {
       ...user.toObject(),
       team_name: user.team_id?.name || null,
       team_color: user.team_id?.color || null,
       team_id: user.team_id?._id || null,
+      team_cash,
+      team_rank,
       achievements,
       total_points: totalPoints,
       coins: coin?.amount || 0,

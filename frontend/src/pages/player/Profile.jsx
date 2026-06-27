@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineFilter, HiOutlineSparkles } from 'react-icons/hi'
+import { HiOutlineBadgeCheck, HiOutlineUser, HiOutlineX, HiOutlineStar, HiOutlineChartBar, HiOutlineFilter, HiOutlineSparkles, HiOutlineUsers } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
@@ -297,6 +297,39 @@ const Profile = ({ userDetails }) => {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      {/* My Team */}
+      {userDetails?.team_name && (
+        <motion.div variants={fadeSlideCard}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+              <HiOutlineUsers className="w-4 h-4 text-white" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">My Team</h2>
+          </div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div
+              className="w-10 h-10 rounded-full border-2 border-white/50 shadow-sm shrink-0"
+              style={{ backgroundColor: userDetails.team_color || '#6366f1' }}
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-bold text-gray-900 dark:text-white truncate">{userDetails.team_name}</p>
+            </div>
+            {userDetails.team_rank != null && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full shadow-sm">
+                <HiOutlineBadgeCheck className="w-4 h-4 text-yellow-500" />
+                <span className="font-bold text-purple-600 dark:text-purple-400">#{userDetails.team_rank}</span>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+              ${(userDetails.team_cash || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {/* Top 5 Champions */}
       <motion.div variants={fadeSlideCard}

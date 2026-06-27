@@ -122,7 +122,7 @@ export default function Teams() {
   }
 
   const handleSetCash = async (teamId, amount) => {
-    const val = parseInt(amount, 10)
+    const val = parseFloat(amount)
     if (isNaN(val) || val < 0) {
       toast.error('Enter a valid cash amount (>= 0)')
       return
@@ -234,12 +234,12 @@ export default function Teams() {
                   </span>
                   <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
                     <FiDollarSign size={14} />
-                    {(team.cash || 0).toLocaleString()}
+                    {(team.cash || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2" onClick={e => e.stopPropagation()}>
                   <input
-                    type="number" min="0" placeholder="Set cash..."
+                    type="number" min="0" step="0.01" placeholder="Set cash..."
                     value={cashInput[teamId] ?? ''}
                     onChange={e => setCashInput(prev => ({ ...prev, [teamId]: e.target.value }))}
                     className="w-24 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/40 outline-none"

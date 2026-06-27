@@ -29,14 +29,16 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    const teamId = user.team_id ? user.team_id.toString() : null;
+
     const accessToken = jwt.sign(
-      { id: user._id.toString(), username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role, teamId },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
-      { id: user._id.toString(), username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role, teamId },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' }
     );
@@ -123,20 +125,22 @@ router.post('/refresh', async (req, res) => {
   try {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    const user = await User.findById(decoded.id).select('username role avatar_url');
+    const user = await User.findById(decoded.id).select('username role avatar_url team_id');
 
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
+    const teamId = user.team_id ? user.team_id.toString() : null;
+
     const accessToken = jwt.sign(
-      { id: user._id.toString(), username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role, teamId },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
 
     const newRefreshToken = jwt.sign(
-      { id: user._id.toString(), username: user.username, role: user.role },
+      { id: user._id.toString(), username: user.username, role: user.role, teamId },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' }
     );

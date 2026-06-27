@@ -36,9 +36,12 @@ function useCountUp(target, duration = 1200) {
   return value
 }
 
-function AnimatedNumber({ value, suffix = '', className = '' }) {
+function AnimatedNumber({ value, suffix = '', className = '', decimals = 0 }) {
   const animated = useCountUp(value)
-  return <span className={className}>{animated.toLocaleString()}{suffix}</span>
+  const formatted = decimals > 0
+    ? animated.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    : animated.toLocaleString()
+  return <span className={className}>{formatted}{suffix}</span>
 }
 
 const rankConfig = {
@@ -240,7 +243,7 @@ export default function TeamRankings({ compact = false }) {
                         ${isFirst ? 'bg-yellow-200/60 text-yellow-800' : 'bg-white/40 text-gray-700'}`}
                       >
                         <span>$</span>
-                        <AnimatedNumber value={team.cash || 0} />
+                        <AnimatedNumber value={team.cash || 0} decimals={2} />
                       </div>
                     </div>
                   </motion.div>
@@ -284,7 +287,7 @@ function TeamCardMini({ team, onClick }) {
         <AnimatedNumber value={team.score || 0} suffix=" pts" />
       </div>
       <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-        $<AnimatedNumber value={team.cash || 0} />
+        $<AnimatedNumber value={team.cash || 0} decimals={2} />
       </div>
     </motion.div>
   )

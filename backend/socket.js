@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { GlobalCountdown, PresenceLog, User, Team, Achievement } from './models/index.js';
+import { GlobalCountdown, PresenceLog, User, Team } from './models/index.js';
 
 let io = null;
 
@@ -109,7 +109,7 @@ async function computeTeamRankings() {
         },
       },
     },
-    { $sort: { score: -1, name: 1 } },
+    { $sort: { cash: -1, name: 1 } },
   ]);
 
   return teams.map((t, i) => ({
@@ -123,9 +123,34 @@ export async function broadcastTeams() {
   if (!io) return;
   try {
     const ranked = await computeTeamRankings();
-    emitToAll('teams:update', ranked);
+    emitToAdmins('teams:update', ranked);
+
+    /* Notify each team's players with just their team's data */
+    for (const team of ranked) {
+      const playerSockets = [];
+      for (const [, socket] of io.sockets.sockets) {
+        if (socket.user && socket.user.teamId === team.id) {
+          playerSockets.push(socket);
+        }
+      }
+      if (playerSockets.length > 0) {
+        playerSockets.forEach(s => s.emit('teams:update', [team]));
+      }
+    }
   } catch (err) {
     console.error('broadcastTeams error:', err);
+  }
+}
+
+async function sendTeamToPlayer(socket, teamId) {
+  try {
+    const ranked = await computeTeamRankings();
+    const found = ranked.find(t => t.id === teamId);
+    if (found) {
+      socket.emit('teams:update', [found]);
+    }
+  } catch (err) {
+    console.error('sendTeamToPlayer error:', err);
   }
 }
 
@@ -151,7 +176,7 @@ export async function setupSocket(server) {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.user = { id: decoded.id, username: decoded.username, role: decoded.role };
+      socket.user = { id: decoded.id, username: decoded.username, role: decoded.role, teamId: decoded.teamId };
       next();
     } catch (err) {
       next(new Error('Invalid token'));
@@ -176,6 +201,13 @@ export async function setupSocket(server) {
       socket.emit('teams:update', initialTeams);
     } catch (err) {
       console.error('Send initial teams error:', err);
+    }
+
+    if (socket.user.role !== 'admin') {
+      const user = await User.findById(socket.user.id).populate('team_id');
+      if (user && user.team_id) {
+        sendTeamToPlayer(socket, user.team_id._id.toString());
+      }
     }
 
     socket.on('heartbeat', () => {
