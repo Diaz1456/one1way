@@ -67,7 +67,7 @@ router.post('/', requireAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Invalid user_id format' });
   }
 
-  const pointsVal = parseInt(points, 10) || 0;
+  const pointsVal = typeof points === 'number' ? points : (parseFloat(points) || 0);
 
   try {
     let teamBefore = 0;
@@ -152,7 +152,7 @@ router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) =>
     const update = {};
     if (description !== undefined) update.description = description;
     if (category !== undefined) update.category = category;
-    if (points !== undefined) update.points = parseInt(points, 10) || 0;
+    if (points !== undefined) update.points = typeof points === 'number' ? points : (parseFloat(points) || 0);
     if (date_earned !== undefined) update.date_earned = date_earned;
 
     if (Object.keys(update).length === 0) {

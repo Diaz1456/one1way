@@ -46,7 +46,7 @@ const CountdownTimer = () => {
   const [pulse, setPulse] = useState(false)
 
   useEffect(() => {
-    if (!countdown.endTime || !countdown.isActive) {
+    if (!countdown.endTime) {
       setRemaining(0)
       return
     }
@@ -57,21 +57,43 @@ const CountdownTimer = () => {
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [countdown.endTime, countdown.isActive])
+  }, [countdown.endTime])
 
   useEffect(() => {
-    if (!countdown.isActive || remaining <= 0 || remaining > 30) return
+    if (remaining <= 0 || remaining > 30) return
     const speed = remaining <= 10 ? 300 : 600
     const id = setInterval(() => setPulse(p => !p), speed)
     return () => clearInterval(id)
-  }, [countdown.isActive, remaining])
+  }, [remaining])
 
-  if (!countdown.isActive || remaining <= 0) return null
+  if (!countdown.endTime) return null
 
   const m = Math.floor(remaining / 60)
   const s = remaining % 60
   const str = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   const isUrgent = remaining <= 30
+  const isExpired = remaining <= 0
+
+  if (isExpired) {
+    return (
+      <motion.span
+        animate={{ scale: [1, 1.12, 1] }}
+        transition={{ duration: 1.5, repeat: Infinity }}
+        className="font-mono tabular-nums font-bold text-lg tracking-wider text-red-500 animate-blink"
+        style={{ textShadow: '0 0 12px rgba(239,68,68,0.7)' }}
+      >
+        TIME'S UP!
+      </motion.span>
+    )
+  }
+
+  if (!countdown.isActive) {
+    return (
+      <span className="font-mono tabular-nums text-sm text-gray-400 dark:text-gray-500">
+        {str}
+      </span>
+    )
+  }
 
   return (
     <motion.span
@@ -86,6 +108,94 @@ const CountdownTimer = () => {
     >
       {str}
     </motion.span>
+  )
+}
+
+const CountdownWidget = () => {
+  const { countdown } = useStore()
+  const [remaining, setRemaining] = useState(0)
+  const [pulse, setPulse] = useState(false)
+
+  useEffect(() => {
+    if (!countdown.endTime) {
+      setRemaining(0)
+      return
+    }
+    const tick = () => {
+      const diff = Math.max(0, Math.floor((new Date(countdown.endTime).getTime() - Date.now()) / 1000))
+      setRemaining(diff)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [countdown.endTime])
+
+  useEffect(() => {
+    if (remaining <= 0 || remaining > 30) return
+    const speed = remaining <= 10 ? 300 : 600
+    const id = setInterval(() => setPulse(p => !p), speed)
+    return () => clearInterval(id)
+  }, [remaining])
+
+  if (!countdown.endTime) return null
+
+  const m = Math.floor(remaining / 60)
+  const s = remaining % 60
+  const str = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  const isUrgent = remaining <= 30
+  const isExpired = remaining <= 0
+
+  if (!countdown.isActive) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Countdown Timer</span>
+          <span className="font-mono tabular-nums text-lg text-gray-400 dark:text-gray-500">{str}</span>
+        </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Waiting for admin to start...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`rounded-2xl p-6 border shadow-lg ${
+      isExpired
+        ? 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-800/50 shadow-red-500/10'
+        : isUrgent
+          ? 'bg-gradient-to-br from-red-50 via-rose-50 to-orange-50 dark:from-red-900/20 dark:via-rose-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-800/50 shadow-red-500/10'
+          : 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/10 dark:via-amber-900/10 dark:to-yellow-900/10 border-orange-200 dark:border-orange-800/50 shadow-orange-500/5'
+    }`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className={`text-sm font-bold uppercase tracking-wider ${
+          isExpired ? 'text-red-600 dark:text-red-400' : isUrgent ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'
+        }`}>
+          {isExpired ? 'Countdown Ended' : isUrgent ? 'Countdown Ending Soon!' : 'Countdown Timer'}
+        </span>
+        <span className={`text-xs ${
+          isExpired ? 'text-red-400' : isUrgent ? 'text-red-400' : 'text-orange-400'
+        }`}>
+          {isExpired ? '⏰' : isUrgent ? '🔥' : '⏳'}
+        </span>
+      </div>
+      <motion.div
+        animate={isUrgent ? {
+          scale: pulse ? [1, 1.05, 1] : [1, 0.97, 1],
+        } : isExpired ? {
+          scale: [1, 1.08, 1],
+        } : {}}
+        transition={isExpired ? { duration: 1.5, repeat: Infinity } : { duration: 0.3 }}
+        className={`font-mono tabular-nums font-black text-5xl sm:text-6xl text-center tracking-widest ${
+          isExpired
+            ? 'text-red-500 animate-blink'
+            : isUrgent
+              ? 'text-red-500 animate-blink'
+              : 'text-orange-500 dark:text-orange-400'
+        }`}
+        style={isUrgent ? { textShadow: pulse ? '0 0 20px rgba(239,68,68,0.5)' : 'none' } : isExpired ? { textShadow: '0 0 20px rgba(239,68,68,0.6)' } : {}}
+      >
+        {isExpired ? "TIME'S UP!" : str}
+      </motion.div>
+    </div>
   )
 }
 
@@ -129,6 +239,14 @@ const AchievementPopup = () => {
   const { stockEvents, dismissStockEvent } = useStore()
   const achievements = stockEvents.filter(e => e.type === 'achievement')
 
+  useEffect(() => {
+    if (achievements.length === 0) return
+    const timers = achievements.map(ev =>
+      setTimeout(() => dismissStockEvent(ev.id), 8000)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [achievements.length])
+
   return (
     <div className="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-xs">
       <AnimatePresence>
@@ -138,11 +256,25 @@ const AchievementPopup = () => {
             initial={{ opacity: 0, x: 80, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 80, scale: 0.8 }}
-            onClick={() => dismissStockEvent(ev.id)}
-            className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-xl shadow-xl p-4 cursor-pointer"
+            className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-xl shadow-xl overflow-hidden"
           >
-            <p className="font-bold text-sm">Achievement Unlocked!</p>
-            <p className="text-xs mt-1">{ev.message || ev.title || 'New achievement!'}</p>
+            <div className="relative p-4 pr-8">
+              <button
+                onClick={() => dismissStockEvent(ev.id)}
+                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white text-xs transition-colors"
+              >
+                ✕
+              </button>
+              <p className="font-bold text-sm">Achievement Unlocked!</p>
+              <p className="text-xs mt-1">{ev.message || ev.title || 'New achievement!'}</p>
+            </div>
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 8, ease: 'linear' }}
+              style={{ transformOrigin: 'left' }}
+              className="h-0.5 bg-white/40"
+            />
           </motion.div>
         ))}
       </AnimatePresence>
@@ -154,6 +286,14 @@ const OvertakeNotification = () => {
   const { stockEvents, dismissStockEvent } = useStore()
   const overtakes = stockEvents.filter(e => e.type === 'overtake')
 
+  useEffect(() => {
+    if (overtakes.length === 0) return
+    const timers = overtakes.map(ev =>
+      setTimeout(() => dismissStockEvent(ev.id), 8000)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [overtakes.length])
+
   return (
     <div className="fixed top-20 left-4 z-50 flex flex-col gap-2 max-w-xs">
       <AnimatePresence>
@@ -163,11 +303,25 @@ const OvertakeNotification = () => {
             initial={{ opacity: 0, x: -80, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -80, scale: 0.8 }}
-            onClick={() => dismissStockEvent(ev.id)}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-xl p-4 cursor-pointer"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-xl overflow-hidden"
           >
-            <p className="font-bold text-sm">Team Overtake!</p>
-            <p className="text-xs mt-1">{ev.message || 'Your team has been overtaken!'}</p>
+            <div className="relative p-4 pr-8">
+              <button
+                onClick={() => dismissStockEvent(ev.id)}
+                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white text-xs transition-colors"
+              >
+                ✕
+              </button>
+              <p className="font-bold text-sm">Team Overtake!</p>
+              <p className="text-xs mt-1">{ev.message || 'Your team has been overtaken!'}</p>
+            </div>
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 8, ease: 'linear' }}
+              style={{ transformOrigin: 'left' }}
+              className="h-0.5 bg-white/40"
+            />
           </motion.div>
         ))}
       </AnimatePresence>
@@ -275,7 +429,7 @@ const PlayerDashboard = () => {
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <Toaster position="top-right" toastOptions={{
         className: 'dark:bg-gray-800 dark:text-white',
-        duration: 3000
+        duration: 6000
       }} />
 
       <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 shadow-sm">
@@ -291,7 +445,6 @@ const PlayerDashboard = () => {
             <OnlineCount />
           </div>
         </div>
-
         <div className="flex items-center gap-1.5">
           {rank && (
             <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
@@ -350,6 +503,7 @@ const PlayerDashboard = () => {
             </div>
           ) : (
             <div className="space-y-6">
+              <CountdownWidget />
               <div className="bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 dark:from-yellow-900/10 dark:via-amber-900/10 dark:to-orange-900/10 rounded-3xl p-4 sm:p-6 border border-yellow-100 dark:border-yellow-900/20 shadow-lg shadow-yellow-500/5">
                 <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                   <span className="text-xl">🏆</span>

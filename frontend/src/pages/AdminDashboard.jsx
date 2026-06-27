@@ -329,6 +329,14 @@ const AchievementPopup = () => {
   const { stockEvents, dismissStockEvent } = useStore()
   const achievements = stockEvents.filter(e => e.type === 'achievement')
 
+  useEffect(() => {
+    if (achievements.length === 0) return
+    const timers = achievements.map(ev =>
+      setTimeout(() => dismissStockEvent(ev.id), 8000)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [achievements.length])
+
   return (
     <div className="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-xs">
       <AnimatePresence>
@@ -338,11 +346,25 @@ const AchievementPopup = () => {
             initial={{ opacity: 0, x: 80, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 80, scale: 0.8 }}
-            onClick={() => dismissStockEvent(ev.id)}
-            className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-xl shadow-xl p-4 cursor-pointer"
+            className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-xl shadow-xl overflow-hidden"
           >
-            <p className="font-bold text-sm">Achievement Unlocked!</p>
-            <p className="text-xs mt-1">{ev.message || ev.title || 'New achievement!'}</p>
+            <div className="relative p-4 pr-8">
+              <button
+                onClick={() => dismissStockEvent(ev.id)}
+                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white text-xs transition-colors"
+              >
+                ✕
+              </button>
+              <p className="font-bold text-sm">Achievement Unlocked!</p>
+              <p className="text-xs mt-1">{ev.message || ev.title || 'New achievement!'}</p>
+            </div>
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 8, ease: 'linear' }}
+              style={{ transformOrigin: 'left' }}
+              className="h-0.5 bg-white/40"
+            />
           </motion.div>
         ))}
       </AnimatePresence>
@@ -354,6 +376,14 @@ const OvertakeNotification = () => {
   const { stockEvents, dismissStockEvent } = useStore()
   const overtakes = stockEvents.filter(e => e.type === 'overtake')
 
+  useEffect(() => {
+    if (overtakes.length === 0) return
+    const timers = overtakes.map(ev =>
+      setTimeout(() => dismissStockEvent(ev.id), 8000)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [overtakes.length])
+
   return (
     <div className="fixed top-20 left-4 z-50 flex flex-col gap-2 max-w-xs">
       <AnimatePresence>
@@ -363,11 +393,25 @@ const OvertakeNotification = () => {
             initial={{ opacity: 0, x: -80, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -80, scale: 0.8 }}
-            onClick={() => dismissStockEvent(ev.id)}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-xl p-4 cursor-pointer"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-xl overflow-hidden"
           >
-            <p className="font-bold text-sm">Team Overtake!</p>
-            <p className="text-xs mt-1">{ev.message || 'Your team has been overtaken!'}</p>
+            <div className="relative p-4 pr-8">
+              <button
+                onClick={() => dismissStockEvent(ev.id)}
+                className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white text-xs transition-colors"
+              >
+                ✕
+              </button>
+              <p className="font-bold text-sm">Team Overtake!</p>
+              <p className="text-xs mt-1">{ev.message || 'Your team has been overtaken!'}</p>
+            </div>
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 8, ease: 'linear' }}
+              style={{ transformOrigin: 'left' }}
+              className="h-0.5 bg-white/40"
+            />
           </motion.div>
         ))}
       </AnimatePresence>

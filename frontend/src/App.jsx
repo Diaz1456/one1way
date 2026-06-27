@@ -96,7 +96,7 @@ const App = () => {
     <AuthProvider>
       <Toaster position="top-right" toastOptions={{
         className: '!bg-white dark:!bg-gray-800 !text-gray-900 dark:!text-white !shadow-lg',
-        duration: 3000
+        duration: 6000
       }} />
       <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" /></div>}>
         <Routes>

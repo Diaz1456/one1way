@@ -22,7 +22,7 @@ const ProgressBar = ({ value, max, color = 'bg-blue-500', label }) => {
         />
       </div>
       <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 w-16 text-right shrink-0">
-        {value.toLocaleString()}
+        {Number.isInteger(value) ? value.toLocaleString() : value.toFixed(1)}
       </span>
     </div>
   )
@@ -62,13 +62,13 @@ const PlayerAchievements = ({ userDetails }) => {
     achievements.forEach(ach => {
       const cat = ach.category || ach.type || 'General'
       if (!map[cat]) map[cat] = { name: cat, points: 0, count: 0 }
-      map[cat].points += ach.points || ach.score || 0
+      map[cat].points += parseFloat(ach.points || ach.score || 0)
       map[cat].count += 1
     })
     return Object.values(map).sort((a, b) => b.points - a.points)
   }, [achievements])
 
-  const totalScore = useMemo(() => achievements.reduce((s, a) => s + (a.points || a.score || 0), 0), [achievements])
+  const totalScore = useMemo(() => achievements.reduce((s, a) => s + parseFloat(a.points || a.score || 0), 0), [achievements])
   const maxCategoryPoints = categories.length > 0 ? Math.max(...categories.map(c => c.points)) : 1
 
   const categoryColors = [
@@ -113,7 +113,7 @@ const PlayerAchievements = ({ userDetails }) => {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Score by Category</h2>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{totalScore.toLocaleString()}</p>
+            <p className="text-2xl font-extrabold text-gray-900 dark:text-white">{Number.isInteger(totalScore) ? totalScore.toLocaleString() : totalScore.toFixed(1)}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Total Score</p>
           </div>
         </div>
@@ -186,7 +186,7 @@ const PlayerAchievements = ({ userDetails }) => {
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                      +{ach.points || ach.score || 0}
+                      +{(ach.points || ach.score || 0) % 1 === 0 ? (ach.points || ach.score || 0) : (ach.points || ach.score || 0).toFixed(2)}
                     </span>
                   </div>
                 </motion.div>

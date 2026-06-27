@@ -141,7 +141,7 @@ export default function Achievements() {
           </select>
           <input placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
             className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all" />
-          <input type="number" placeholder="Points" value={form.points} onChange={e => setForm({ ...form, points: Number(e.target.value) })}
+          <input type="number" step="any" placeholder="Points" value={form.points} onChange={e => setForm({ ...form, points: e.target.value === '' ? '' : Number(e.target.value) })}
             className="px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 outline-none transition-all" />
           <motion.button type="submit" disabled={creating}
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -160,7 +160,7 @@ export default function Achievements() {
               <motion.div key={cat} whileHover={{ scale: 1.05 }}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30 shadow-sm">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{cat}</span>
-                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">{pts} pts</span>
+                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">{pts.toFixed(1)} pts</span>
               </motion.div>
             ))}
           </div>
@@ -207,7 +207,7 @@ export default function Achievements() {
                       </div>
                       <div className="w-20">
                         <label className="block text-xs font-medium text-gray-500 mb-1">Points</label>
-                        <input type="number" value={editForm.points} onChange={e => setEditForm({ ...editForm, points: Number(e.target.value) })}
+                        <input type="number" step="any" value={editForm.points} onChange={e => setEditForm({ ...editForm, points: e.target.value === '' ? '' : Number(e.target.value) })}
                           className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 outline-none" />
                       </div>
                       <div className="flex gap-1.5">
@@ -239,7 +239,7 @@ export default function Achievements() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-bold text-amber-600 dark:text-amber-400 tabular-nums">+{ach.points || 0}</span>
+                        <span className="text-sm font-bold text-amber-600 dark:text-amber-400 tabular-nums">+{(ach.points || 0).toFixed(1)}</span>
                         <motion.button onClick={() => startEdit(ach)}
                           whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                           className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 hover:text-blue-500 transition-all"><FiEdit2 size={14} /></motion.button>
