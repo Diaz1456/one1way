@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { User, Team, Achievement, StockEvent } from '../models/index.js';
+import { User, Team, Achievement, StockEvent, CategoryCash } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { broadcastAchievement, broadcastOvertake, broadcastTeams } from '../socket.js';
 import { requireValidObjectId } from '../middleware/validate.js';
@@ -132,6 +132,23 @@ router.post('/', requireAdmin, async (req, res) => {
               data: { teamName, overtakenTeamName: otherTeam.name },
             });
           }
+        }
+
+        const categoryCashMap = await CategoryCash.findOne({ category }).lean();
+        const cashAmount = categoryCashMap?.cash || 0;
+        if (cashAmount > 0) {
+          await Team.findByIdAndUpdate(teamId, { $inc: { cash: cashAmount } });
+          await StockEvent.create({
+            type: 'achievement',
+            message: `+$${cashAmount} cash for ${teamName} from ${userInfo.username}'s ${category || 'general'} achievement`,
+            data: {
+              teamId: teamId.toString(),
+              teamName,
+              playerName: userInfo.username,
+              category,
+              cashAmount,
+            },
+          });
         }
       }
     }

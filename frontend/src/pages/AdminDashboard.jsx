@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
   FiUsers, FiAward, FiStar, FiClock, FiMessageSquare, FiUsers as FiGroup, FiClock as FiTimer,
-  FiMenu, FiX, FiLogOut, FiBell, FiBellOff, FiSettings, FiTag, FiHome
+  FiMenu, FiX, FiLogOut, FiBell, FiBellOff, FiSettings, FiTag, FiHome, FiDollarSign
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
@@ -22,12 +22,14 @@ import RecentLogins from '../components/RecentLogins'
 import Countdown from './admin/Countdown'
 import AdminSettings from './admin/Settings'
 import DailyTasks from './admin/DailyTasks'
+import CategoryCash from './admin/CategoryCash'
 
 const navItems = [
   { path: 'accounts', label: 'Accounts', icon: FiUsers },
   { path: 'leaderboard', label: 'Leaderboard', icon: FiAward },
   { path: 'achievements', label: 'Achievements', icon: FiStar },
   { path: 'categories', label: 'Categories', icon: FiTag },
+  { path: 'category-cash', label: 'Category Cash', icon: FiDollarSign },
   { path: 'tasks', label: 'Daily Tasks', icon: FiClock },
   { path: 'history', label: 'History', icon: FiTimer },
   { path: 'feedback', label: 'Feedback', icon: FiMessageSquare },
@@ -278,6 +280,7 @@ export default function AdminDashboard() {
               <Route path="leaderboard" element={<motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Leaderboard /></motion.div>} />
               <Route path="achievements" element={<motion.div key="achievements" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Achievements /></motion.div>} />
               <Route path="categories" element={<motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Categories /></motion.div>} />
+              <Route path="category-cash" element={<motion.div key="category-cash" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><CategoryCash /></motion.div>} />
               <Route path="tasks" element={<motion.div key="tasks" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><DailyTasks /></motion.div>} />
               <Route path="history" element={<motion.div key="history" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><History /></motion.div>} />
               <Route path="feedback" element={<motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}><Feedback /></motion.div>} />
