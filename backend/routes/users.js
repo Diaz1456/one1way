@@ -71,7 +71,8 @@ router.get('/', async (req, res) => {
 
 router.get('/leaderboard', async (req, res) => {
   try {
-    const results = await User.aggregate([
+    const { category } = req.query;
+    const pipeline = [
       { $match: { role: 'player' } },
       {
         $lookup: {
@@ -90,6 +91,23 @@ router.get('/leaderboard', async (req, res) => {
           as: 'achievements',
         },
       },
+    ];
+
+    if (category) {
+      pipeline.push({
+        $addFields: {
+          achievements: {
+            $filter: {
+              input: '$achievements',
+              as: 'a',
+              cond: { $eq: ['$$a.category', category] },
+            },
+          },
+        },
+      });
+    }
+
+    pipeline.push(
       {
         $addFields: {
           total_points: {
@@ -104,12 +122,24 @@ router.get('/leaderboard', async (req, res) => {
       { $sort: { total_points: -1 } },
       ...(req.user.role !== 'admin' ? [{ $limit: 5 }] : []),
       { $project: { password_hash: 0, achievements: 0 } },
-    ]);
+    );
+
+    const results = await User.aggregate(pipeline);
     const mapped = results.map(u => ({ ...u, id: u._id.toString() }));
     res.json(mapped);
   } catch (err) {
     console.error('Leaderboard error:', err);
     res.status(500).json({ error: 'Failed to load leaderboard' });
+  }
+});
+
+router.get('/leaderboard/categories', async (req, res) => {
+  try {
+    const categories = await Achievement.distinct('category');
+    res.json(categories.filter(Boolean).sort());
+  } catch (err) {
+    console.error('Leaderboard categories error:', err);
+    res.status(500).json({ error: 'Failed to load categories' });
   }
 });
 

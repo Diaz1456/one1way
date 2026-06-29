@@ -276,6 +276,44 @@ const ChampionModal = ({ champion, onClose }) => {
                 ))}
               </div>
             )}
+            {achievements.length > 0 && (
+              <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+                  <HiOutlineStar className="w-3.5 h-3.5" />
+                  All Entries
+                </h4>
+                <div className="space-y-2">
+                  {achievements.map((ach, i) => (
+                    <motion.div
+                      key={ach._id || i}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.02 }}
+                      className="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-700/20 border border-gray-100 dark:border-gray-700/50"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white">{ach.title || ach.name || 'Achievement'}</p>
+                          {ach.description && (
+                            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 leading-relaxed">{ach.description}</p>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                            {Number.isInteger(ach.points) ? ach.points : (ach.points || 0).toFixed(1)}
+                          </p>
+                          {ach.createdAt && (
+                            <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5">
+                              {new Date(ach.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>

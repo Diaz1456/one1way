@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
   FiUsers, FiAward, FiStar, FiClock, FiMessageSquare, FiUsers as FiGroup, FiClock as FiTimer,
-  FiMenu, FiX, FiLogOut, FiBell, FiVolume2, FiVolumeX, FiSettings, FiTag, FiHome
+  FiMenu, FiX, FiLogOut, FiBell, FiBellOff, FiSettings, FiTag, FiHome
 } from 'react-icons/fi'
 import useStore from '../store'
 import api from '../api'
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
           <motion.button onClick={toggleSound}
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 transition-all" title="Toggle Sound">
-            {preferences.soundEnabled ? <FiVolume2 size={18} /> : <FiVolumeX size={18} />}
+            {preferences.soundEnabled ? <FiBell size={18} /> : <FiBellOff size={18} />}
           </motion.button>
           <motion.button onClick={() => setRightPanelOpen(o => !o)}
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}

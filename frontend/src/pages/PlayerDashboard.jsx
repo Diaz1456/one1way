@@ -7,7 +7,7 @@ import {
   HiOutlineUsers, HiOutlineChatAlt2, HiOutlineCog,
   HiOutlineLogout, HiOutlineVolumeUp, HiOutlineVolumeOff, HiOutlineHome
 } from 'react-icons/hi'
-import { FiAward } from 'react-icons/fi'
+import { FiAward, FiBell, FiBellOff } from 'react-icons/fi'
 import api from '../api'
 import useStore from '../store'
 import { playClick } from '../sound'
@@ -569,7 +569,7 @@ const PlayerDashboard = () => {
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-all"
             title="Toggle sound"
           >
-            {preferences.soundEnabled ? <HiOutlineVolumeUp className="w-5 h-5" /> : <HiOutlineVolumeOff className="w-5 h-5" />}
+            {preferences.soundEnabled ? <FiBell className="w-5 h-5" /> : <FiBellOff className="w-5 h-5" />}
           </motion.button>
 
           <motion.button

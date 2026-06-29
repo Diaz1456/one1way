@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { HiOutlineChartBar } from 'react-icons/hi'
+import { HiOutlineChartBar, HiOutlineStar } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import api from '../../api'
 import useStore from '../../store'
@@ -151,6 +151,50 @@ const PlayerAchievements = ({ userDetails }) => {
                 </div>
               </motion.div>
             ))}
+          </div>
+        )}
+
+        {achievements.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+              <HiOutlineStar className="w-4 h-4 text-amber-500" />
+              All Achievements
+            </h4>
+            <div className="space-y-2">
+              {achievements.map((ach, i) => (
+                <motion.div
+                  key={ach._id || i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{ach.title || ach.name || 'Achievement'}</p>
+                        {ach.category && (
+                          <span className="text-[10px] font-medium text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-full">{ach.category}</span>
+                        )}
+                      </div>
+                      {ach.description && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">{ach.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-base font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                        {Number.isInteger(ach.points) ? ach.points : (ach.points || 0).toFixed(1)}
+                      </p>
+                      {ach.createdAt && (
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                          {new Date(ach.createdAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         )}
       </div>

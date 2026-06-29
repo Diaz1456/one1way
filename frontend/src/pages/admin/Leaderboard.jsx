@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiSearch, FiX, FiStar, FiCheckCircle, FiAward, FiTrendingUp } from 'react-icons/fi'
+import { FiSearch, FiX, FiStar, FiAward, FiSend } from 'react-icons/fi'
 import api from '../../api'
 
 const rankColors = {
@@ -26,11 +26,16 @@ export default function Leaderboard() {
   const [modalPlayer, setModalPlayer] = useState(null)
   const [modalData, setModalData] = useState(null)
   const [modalLoading, setModalLoading] = useState(false)
+  const [categories, setCategories] = useState([])
+  const [activeCategory, setActiveCategory] = useState(null)
+  const [noteText, setNoteText] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
 
-  const fetchLeaderboard = useCallback(async () => {
+  const fetchLeaderboard = useCallback(async (category) => {
     try {
       setLoading(true)
-      const { data } = await api.get('/users/leaderboard')
+      const url = category ? `/users/leaderboard?category=${encodeURIComponent(category)}` : '/users/leaderboard'
+      const { data } = await api.get(url)
       setPlayers(Array.isArray(data) ? data : data.users || data.leaderboard || [])
     } catch {
       toast.error('Failed to load leaderboard')
@@ -39,23 +44,51 @@ export default function Leaderboard() {
     }
   }, [])
 
-  useEffect(() => { fetchLeaderboard() }, [fetchLeaderboard])
+  useEffect(() => { fetchLeaderboard(activeCategory) }, [fetchLeaderboard, activeCategory])
+
+  useEffect(() => {
+    api.get('/users/leaderboard/categories')
+      .then(({ data }) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => {})
+  }, [])
 
   const openModal = async (player, rank) => {
     setModalPlayer({ ...player, rank })
     setModalLoading(true)
     setModalData(null)
+    setNoteText('')
     try {
       const { data } = await api.get(`/users/${player.id}/details`)
       const achs = data.achievements || []
       const taskCount = achs.filter(a => a.category === 'daily_task').length
-      setModalData({ achievements: achs, taskCount })
+      const note = data.admin_note || null
+      setModalData({ achievements: achs, taskCount, note })
+      if (note?.content) setNoteText(note.content)
     } catch {
-      setModalData({ achievements: [], taskCount: 0 })
+      setModalData({ achievements: [], taskCount: 0, note: null })
     } finally {
       setModalLoading(false)
     }
   }
+
+  const saveNote = async () => {
+    if (!modalPlayer?.id) return
+    setSavingNote(true)
+    try {
+      const { data } = await api.put(`/users/${modalPlayer.id}/notes`, { content: noteText })
+      setModalData(prev => ({ ...prev, note: data }))
+      toast.success('Note saved')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save note')
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  const tabs = [
+    { key: null, label: 'Overall' },
+    ...categories.map(c => ({ key: c, label: c }))
+  ]
 
   const filtered = players.filter(p =>
     !filter || (p.username && p.username.toLowerCase().includes(filter.toLowerCase()))
@@ -63,8 +96,6 @@ export default function Leaderboard() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-
-      {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-700 p-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -72,7 +103,9 @@ export default function Leaderboard() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20">
               <FiAward className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Leaderboard</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              {activeCategory ? `${activeCategory} Leaderboard` : 'Leaderboard'}
+            </h2>
           </div>
           <div className="relative max-w-xs w-full sm:w-64">
             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -82,7 +115,28 @@ export default function Leaderboard() {
         </div>
       </motion.div>
 
-      {/* Player cards */}
+      {categories.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 overflow-x-auto">
+          <div className="flex gap-1.5 min-w-max">
+            {tabs.map(({ key, label }) => (
+              <motion.button key={key ?? '__all__'}
+                onClick={() => setActiveCategory(key)}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all min-h-[44px] whitespace-nowrap ${
+                  activeCategory === key
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/20'
+                    : 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {label}
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="relative w-10 h-10">
@@ -91,7 +145,9 @@ export default function Leaderboard() {
           </div>
         </div>
       ) : filtered.length === 0 ? (
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-400 dark:text-gray-500 py-20">No players found</motion.p>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-400 dark:text-gray-500 py-20">
+          {activeCategory ? 'No achievements in this category yet.' : 'No players found'}
+        </motion.p>
       ) : (
         <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-3">
           {filtered.map((player, index) => {
@@ -106,12 +162,10 @@ export default function Leaderboard() {
                   colors ? `ring-2 ${colors.ring} ring-offset-2 dark:ring-offset-gray-900` : ''
                 }`}
               >
-                {/* Gradient accent on top */}
                 {colors && (
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.bg}`} />
                 )}
                 <div className="flex items-center gap-4">
-                  {/* Rank badge */}
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
                     colors
                       ? `bg-gradient-to-br ${colors.bg} text-white shadow-md`
@@ -119,13 +173,9 @@ export default function Leaderboard() {
                   }`}>
                     #{rank}
                   </div>
-
-                  {/* Avatar */}
                   <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-base shrink-0 shadow-sm">
                     {(player.username || '?')[0].toUpperCase()}
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900 dark:text-white truncate">{player.username}</p>
@@ -135,8 +185,6 @@ export default function Leaderboard() {
                     </div>
                     <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{player.team?.name || player.teamName || 'No team'}</p>
                   </div>
-
-                  {/* Score */}
                   <div className="text-right shrink-0">
                     <p className="text-lg font-bold text-gray-900 dark:text-white tabular-nums">{player.score ?? player.total_points ?? 0}</p>
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider">Points</p>
@@ -148,7 +196,6 @@ export default function Leaderboard() {
         </motion.div>
       )}
 
-      {/* Player detail modal */}
       <AnimatePresence>
         {modalPlayer && (
           <motion.div
@@ -164,17 +211,15 @@ export default function Leaderboard() {
               exit={{ scale: 0.85, opacity: 0, y: 10 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col"
             >
-              {/* Modal header */}
-              <div className="relative bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/5 dark:via-purple-500/5 dark:to-pink-500/5 p-6 pb-0">
+              <div className="relative bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/5 dark:via-purple-500/5 dark:to-pink-500/5 p-6 pb-0 shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-purple-500/20">
                         {(modalPlayer.username || '?')[0].toUpperCase()}
                       </div>
-                      {/* Rank badge overlay */}
                       <div className={`absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md ${
                         modalPlayer.rank <= 3
                           ? `bg-gradient-to-br ${rankColors[modalPlayer.rank].bg}`
@@ -196,8 +241,6 @@ export default function Leaderboard() {
                     <FiX size={20} />
                   </motion.button>
                 </div>
-
-                {/* Stats row */}
                 <div className="flex gap-4 mt-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex-1 bg-white/60 dark:bg-gray-700/40 rounded-xl px-4 py-3 text-center backdrop-blur-sm">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{modalPlayer.score ?? modalPlayer.total_points ?? 0}</p>
@@ -214,8 +257,7 @@ export default function Leaderboard() {
                 </div>
               </div>
 
-              {/* Modal body */}
-              <div className="p-6 overflow-y-auto max-h-[50vh]">
+              <div className="p-6 overflow-y-auto flex-1">
                 <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
                   <FiStar className="w-4 h-4 text-amber-500" />
                   Achievements
@@ -233,54 +275,69 @@ export default function Leaderboard() {
                     No achievements yet
                   </motion.p>
                 ) : (
-                  <div className="space-y-3">
-                    {(() => {
-                      const catMap = {}
-                      modalData.achievements.forEach(a => {
-                        const cat = a.category || 'General'
-                        catMap[cat] = (catMap[cat] || 0) + parseFloat(a.points || 0)
-                      })
-                      const cats = Object.entries(catMap).sort((a, b) => b[1] - a[1])
-                      const maxPts = cats.length > 0 ? Math.max(...cats.map(c => c[1])) : 1
-                      return cats.map(([name, pts], i) => (
-                        <motion.div
-                          key={name}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.08 }}
-                          className={`p-4 rounded-xl border ${
-                            i === 0
-                              ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-700/40'
-                              : 'bg-gray-50 dark:bg-gray-700/30 border-gray-100 dark:border-gray-700'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <p className={`text-base sm:text-lg font-bold truncate ${
-                              i === 0 ? 'text-yellow-700 dark:text-yellow-300' : 'text-gray-800 dark:text-white'
-                            }`}>
-                              {name}
-                            </p>
-                            <p className={`text-lg sm:text-xl font-black tabular-nums shrink-0 ${
-                              i === 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'
-                            }`}>
-                              {Number.isInteger(pts) ? pts.toLocaleString() : pts.toFixed(1)}
-                            </p>
+                  <div className="space-y-2">
+                    {modalData.achievements.map((ach, i) => (
+                      <motion.div
+                        key={ach._id || i}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.03 }}
+                        className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{ach.title || ach.name || 'Achievement'}</p>
+                              {ach.category && (
+                                <span className="text-[10px] font-medium text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-full">{ach.category}</span>
+                              )}
+                            </div>
+                            {ach.description && (
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">{ach.description}</p>
+                            )}
                           </div>
-                          <div className="mt-2.5 w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${(pts / maxPts) * 100}%` }}
-                              transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.08 + 0.2 }}
-                              className={`h-full rounded-full ${
-                                i === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 'bg-gradient-to-r from-blue-400 to-cyan-400'
-                              }`}
-                            />
+                          <div className="text-right shrink-0">
+                            <p className="text-base font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                              {Number.isInteger(ach.points) ? ach.points : (ach.points || 0).toFixed(1)}
+                            </p>
+                            {ach.createdAt && (
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                {new Date(ach.createdAt).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
-                        </motion.div>
-                      ))
-                    })()}
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 )}
+
+                <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <span role="img" aria-label="note" className="text-base">📝</span>
+                    Admin Notes
+                  </h4>
+                  <textarea value={noteText} onChange={e => setNoteText(e.target.value)}
+                    placeholder="Leave a private note for this player..."
+                    maxLength={2000}
+                    rows={3}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all resize-none"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">{noteText.length}/2000</span>
+                    <motion.button onClick={saveNote} disabled={savingNote}
+                      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-medium rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50"
+                    >
+                      {savingNote ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <FiSend size={14} />
+                      )}
+                      {savingNote ? 'Saving...' : 'Save Note'}
+                    </motion.button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>
