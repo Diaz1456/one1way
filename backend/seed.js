@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { connectDB } from './db.js';
-import { User, Team, DailyTask, GlobalCountdown } from './models/index.js';
+import { User, Team, DailyTask, GlobalCountdown, CategoryRate } from './models/index.js';
 
 async function seed() {
   await connectDB();
@@ -83,6 +83,18 @@ async function seed() {
         is_active: false,
       });
       console.log('Global countdown initialized');
+    }
+
+    const rateCount = await CategoryRate.countDocuments();
+    if (rateCount === 0) {
+      const defaults = [
+        { category: 'General', rate: 1.0 },
+        { category: 'Speed', rate: 2.0 },
+        { category: 'Knowledge', rate: 1.5 },
+        { category: 'Teamwork', rate: 3.0 },
+      ];
+      await CategoryRate.insertMany(defaults);
+      console.log('Default category rates seeded:', defaults.map(d => `${d.category}: $${d.rate}/pt`).join(', '));
     }
 
     console.log('Seed completed successfully');

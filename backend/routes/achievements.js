@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import { User, Team, Achievement, StockEvent, CategoryCash } from '../models/index.js';
+import { User, Team, Achievement, StockEvent, CategoryRate } from '../models/index.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 import { broadcastAchievement, broadcastOvertake, broadcastTeams } from '../socket.js';
 import { requireValidObjectId } from '../middleware/validate.js';
@@ -134,13 +134,14 @@ router.post('/', requireAdmin, async (req, res) => {
           }
         }
 
-        const categoryCashMap = await CategoryCash.findOne({ category }).lean();
-        const cashAmount = categoryCashMap?.cash || 0;
+        const categoryRateDoc = await CategoryRate.findOne({ category }).lean();
+        const rate = categoryRateDoc?.rate || 0;
+        const cashAmount = pointsVal * rate;
         if (cashAmount > 0) {
           await Team.findByIdAndUpdate(teamId, { $inc: { cash: cashAmount } });
           await StockEvent.create({
             type: 'achievement',
-            message: `+$${cashAmount} cash for ${teamName} from ${userInfo.username}'s ${category || 'general'} achievement`,
+            message: `+$${cashAmount.toFixed(2)} cash for ${teamName} from ${userInfo.username}'s ${category || 'general'} achievement (${pointsVal} pts × $${rate}/pt)`,
             data: {
               teamId: teamId.toString(),
               teamName,

@@ -20,7 +20,7 @@ import feedbackRoutes from './routes/feedback.js';
 import teamRoutes from './routes/teams.js';
 import adminRoutes from './routes/admin.js';
 import categoryRoutes from './routes/categories.js';
-import categoryCashRoutes from './routes/categoryCash.js';
+import categoryRateRoutes from './routes/categoryRates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,7 +52,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/category-cash', categoryCashRoutes);
+app.use('/api/category-rates', categoryRateRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
