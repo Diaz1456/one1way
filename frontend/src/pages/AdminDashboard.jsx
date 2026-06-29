@@ -168,7 +168,7 @@ export default function AdminDashboard() {
           <motion.button onClick={() => setRightPanelOpen(o => !o)}
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300 relative transition-all" title="Presence & Feedback">
-            <FiBell size={18} />
+            <FiMessageSquare size={18} />
             {feedbackList.length > 0 && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}
                 className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md shadow-red-500/30">{feedbackList.length}</motion.span>
