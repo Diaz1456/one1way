@@ -57,7 +57,7 @@ async function getTeamTotalScore(teamId) {
 }
 
 router.post('/', requireAdmin, async (req, res) => {
-  const { user_id, description, category, points, date_earned } = req.body;
+  const { user_id, title, description, category, points, date_earned } = req.body;
 
   if (!user_id) {
     return res.status(400).json({ error: 'user_id is required' });
@@ -85,11 +85,19 @@ router.post('/', requireAdmin, async (req, res) => {
       }
     }
 
+    let rate = 0;
+    if (category) {
+      const rateDoc = await CategoryRate.findOne({ category }).lean();
+      rate = rateDoc?.rate || 0;
+    }
+
     const achievement = await Achievement.create({
       user_id,
+      title: title || null,
       description: description || null,
       category: category || null,
       points: pointsVal,
+      rateUsed: rate,
       date_earned: date_earned || new Date().toISOString().split('T')[0],
     });
 
@@ -134,8 +142,6 @@ router.post('/', requireAdmin, async (req, res) => {
           }
         }
 
-        const categoryRateDoc = await CategoryRate.findOne({ category }).lean();
-        const rate = categoryRateDoc?.rate || 0;
         const cashAmount = pointsVal * rate;
         if (cashAmount > 0) {
           await Team.findByIdAndUpdate(teamId, { $inc: { cash: cashAmount } });
@@ -165,23 +171,56 @@ router.post('/', requireAdmin, async (req, res) => {
 router.put('/:id', requireAdmin, requireValidObjectId('id'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { description, category, points, date_earned } = req.body;
+    const { title, description, category, points, date_earned } = req.body;
+
+    const oldAchievement = await Achievement.findById(id);
+    if (!oldAchievement) {
+      return res.status(404).json({ error: 'Achievement not found' });
+    }
+
+    const oldPoints = oldAchievement.points || 0;
+    const oldRate = oldAchievement.rateUsed || 0;
+    const oldCategory = oldAchievement.category;
 
     const update = {};
+    if (title !== undefined) update.title = title;
     if (description !== undefined) update.description = description;
     if (category !== undefined) update.category = category;
     if (points !== undefined) update.points = typeof points === 'number' ? points : (parseFloat(points) || 0);
     if (date_earned !== undefined) update.date_earned = date_earned;
+
+    const newCategory = category !== undefined ? category : oldCategory;
+    const newPoints = points !== undefined ? (typeof points === 'number' ? points : (parseFloat(points) || 0)) : oldPoints;
+
+    if (newCategory !== oldCategory || newPoints !== oldPoints) {
+      let newRate = oldRate;
+      if (newCategory !== oldCategory) {
+        const rateDoc = await CategoryRate.findOne({ category: newCategory }).lean();
+        newRate = rateDoc?.rate || 0;
+        update.rateUsed = newRate;
+      }
+      const oldCash = oldPoints * oldRate;
+      const newCash = newPoints * newRate;
+      const cashDiff = newCash - oldCash;
+
+      if (cashDiff !== 0) {
+        const user = await User.findById(oldAchievement.user_id).populate('team_id');
+        if (user && user.team_id) {
+          const team = await Team.findById(user.team_id._id);
+          if (team) {
+            const newCashAmount = Math.max(0, (team.cash || 0) + cashDiff);
+            team.cash = newCashAmount;
+            await team.save();
+          }
+        }
+      }
+    }
 
     if (Object.keys(update).length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
     const achievement = await Achievement.findByIdAndUpdate(id, update, { new: true });
-
-    if (!achievement) {
-      return res.status(404).json({ error: 'Achievement not found' });
-    }
 
     res.json(achievement);
     broadcastTeams();
@@ -195,13 +234,27 @@ router.delete('/:id', requireAdmin, requireValidObjectId('id'), async (req, res)
   try {
     const { id } = req.params;
 
-    const achievement = await Achievement.findByIdAndDelete(id);
-
+    const achievement = await Achievement.findById(id);
     if (!achievement) {
       return res.status(404).json({ error: 'Achievement not found' });
     }
 
-    res.json({ message: 'Achievement deleted', achievement: { id: achievement._id, category: achievement.category } });
+    const cashToRemove = (achievement.points || 0) * (achievement.rateUsed || 0);
+
+    if (cashToRemove > 0) {
+      const user = await User.findById(achievement.user_id).populate('team_id');
+      if (user && user.team_id) {
+        const team = await Team.findById(user.team_id._id);
+        if (team) {
+          team.cash = Math.max(0, (team.cash || 0) - cashToRemove);
+          await team.save();
+        }
+      }
+    }
+
+    await Achievement.findByIdAndDelete(id);
+
+    res.json({ message: 'Achievement deleted. Team cash adjusted.' });
     broadcastTeams();
   } catch (err) {
     console.error('Delete achievement error:', err);

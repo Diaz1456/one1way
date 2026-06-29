@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiSearch, FiX, FiStar, FiAward, FiSend } from 'react-icons/fi'
+import { FiSearch, FiX, FiStar, FiAward, FiSend, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import api from '../../api'
 
 const rankColors = {
@@ -30,6 +30,10 @@ export default function Leaderboard() {
   const [activeCategory, setActiveCategory] = useState(null)
   const [noteText, setNoteText] = useState('')
   const [savingNote, setSavingNote] = useState(false)
+  const [editingAchievement, setEditingAchievement] = useState(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', category: '', points: '' })
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
 
   const fetchLeaderboard = useCallback(async (category) => {
     try {
@@ -83,6 +87,57 @@ export default function Leaderboard() {
     } finally {
       setSavingNote(false)
     }
+  }
+
+  const startEdit = (ach) => {
+    setEditingAchievement(ach._id)
+    setEditForm({
+      title: ach.title || '',
+      description: ach.description || '',
+      category: ach.category || '',
+      points: String(ach.points || 0),
+    })
+  }
+
+  const cancelEdit = () => {
+    setEditingAchievement(null)
+    setEditForm({ title: '', description: '', category: '', points: '' })
+  }
+
+  const saveEdit = async () => {
+    if (!editingAchievement) return
+    setSavingEdit(true)
+    try {
+      await api.put(`/achievements/${editingAchievement}`, {
+        title: editForm.title,
+        description: editForm.description,
+        category: editForm.category,
+        points: parseFloat(editForm.points) || 0,
+      })
+      toast.success('Achievement updated - cash recalculated')
+      cancelEdit()
+      const { data } = await api.get(`/users/${modalPlayer.id}/details`)
+      setModalData(prev => ({ ...prev, achievements: data.achievements || [] }))
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update achievement')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  const confirmDelete = (achId) => {
+    if (!window.confirm('Delete this achievement? Team cash will be adjusted accordingly.')) return
+    setDeletingId(achId)
+    api.delete(`/achievements/${achId}`)
+      .then(() => {
+        toast.success('Achievement deleted - team cash adjusted')
+        setModalData(prev => ({
+          ...prev,
+          achievements: (prev?.achievements || []).filter(a => a._id !== achId),
+        }))
+      })
+      .catch(err => toast.error(err.response?.data?.error || 'Failed to delete'))
+      .finally(() => setDeletingId(null))
   }
 
   const tabs = [
@@ -276,39 +331,83 @@ export default function Leaderboard() {
                   </motion.p>
                 ) : (
                   <div className="space-y-2">
-                    {modalData.achievements.map((ach, i) => (
-                      <motion.div
-                        key={ach._id || i}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{ach.title || ach.name || 'Achievement'}</p>
-                              {ach.category && (
-                                <span className="text-[10px] font-medium text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-full">{ach.category}</span>
-                              )}
+                    {modalData.achievements.map((ach, i) => {
+                      const isEditing = editingAchievement === ach._id
+                      return (
+                        <motion.div
+                          key={ach._id || i}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700"
+                        >
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <input value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+                                placeholder="Title" className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+                              <input value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                                placeholder="Description" className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+                              <div className="flex gap-2">
+                                <input value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                                  placeholder="Category" className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+                                <input value={editForm.points} onChange={e => setEditForm(f => ({ ...f, points: e.target.value }))}
+                                  type="number" step="any" placeholder="Points" className="w-24 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" />
+                              </div>
+                              <div className="flex gap-2 justify-end">
+                                <button onClick={cancelEdit}
+                                  className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+                                <button onClick={saveEdit} disabled={savingEdit}
+                                  className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 transition-all">
+                                  {savingEdit ? 'Saving...' : 'Save'}
+                                </button>
+                              </div>
                             </div>
-                            {ach.description && (
-                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">{ach.description}</p>
-                            )}
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-base font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                              {Number.isInteger(ach.points) ? ach.points : (ach.points || 0).toFixed(1)}
-                            </p>
-                            {ach.createdAt && (
-                              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                                {new Date(ach.createdAt).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                          ) : (
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{ach.title || ach.name || 'Achievement'}</p>
+                                  {ach.category && (
+                                    <span className="text-[10px] font-medium text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-full">{ach.category}</span>
+                                  )}
+                                </div>
+                                {ach.description && (
+                                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">{ach.description}</p>
+                                )}
+                              </div>
+                              <div className="flex items-start gap-1 shrink-0">
+                                <div className="text-right mr-1">
+                                  <p className="text-base font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                                    {Number.isInteger(ach.points) ? ach.points : (ach.points || 0).toFixed(1)}
+                                  </p>
+                                  {ach.createdAt && (
+                                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                      {new Date(ach.createdAt).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <button onClick={() => startEdit(ach)}
+                                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-all"
+                                    title="Edit">
+                                    <FiEdit2 size={12} />
+                                  </button>
+                                  <button onClick={() => confirmDelete(ach._id)} disabled={deletingId === ach._id}
+                                    className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all disabled:opacity-40"
+                                    title="Delete">
+                                    {deletingId === ach._id ? (
+                                      <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <FiTrash2 size={12} />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </motion.div>
+                      )
+                    })}
                   </div>
                 )}
 
